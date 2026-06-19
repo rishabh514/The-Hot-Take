@@ -1,6 +1,11 @@
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method Not Allowed' });
+    return res.status(405).json({ error: { message: 'Method Not Allowed' } });
+  }
+
+  // Safety check: Is the Vercel environment variable actually loaded?
+  if (!process.env.GROQ_API_KEY) {
+    return res.status(400).json({ error: { message: 'Vercel is missing the GROQ_API_KEY environment variable.' } });
   }
 
   try {
@@ -14,8 +19,10 @@ export default async function handler(req, res) {
     });
 
     const data = await response.json();
-    res.status(200).json(data);
+    
+    // CRITICAL FIX: Pass along the ACTUAL status code from Groq
+    res.status(response.status).json(data);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: { message: error.message } });
   }
 }
