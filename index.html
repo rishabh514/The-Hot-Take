@@ -77,28 +77,70 @@
 
     <section class="screen screen--difficulty" data-screen="difficulty" aria-label="Choose difficulty">
       <div class="screen__inner">
-        <p class="eyebrow">step 02 / set the heat</p>
-        <h1 class="display-lg">how spicy<br><span class="text-grad">do you want it?</span></h1>
+        <p class="eyebrow">step 02 / find your level</p>
+        <h1 class="display-lg">set the difficulty<br><span class="text-grad">as per your capacity &amp; confidence</span></h1>
+        <p class="lede" style="text-align:center;max-width:560px;margin:0 auto 2rem;">
+          Choose your challenge. The harder you push, the sharper you become.
+        </p>
+
         <div class="diff-list" id="diffList" role="listbox" aria-label="Difficulty options">
+
+          <!-- EASY MODE -->
           <button type="button" class="diff-card" data-diff="easy" role="option" aria-selected="false">
-            <span class="diff-card__flame">🌱</span>
-            <span class="diff-card__name">mild</span>
-            <span class="diff-card__desc">3 min · 150 words · straightforward topic</span>
-            <span class="diff-card__meta">temp 0.7</span>
+            <div class="diff-card__top">
+              <span class="diff-card__flame">🌱</span>
+              <span class="diff-card__badge">4 topics</span>
+            </div>
+            <div class="diff-card__body">
+              <div class="diff-card__header">
+                <span class="diff-card__name">Easy</span>
+                <span class="diff-card__time">3 min · 150 words</span>
+              </div>
+              <p class="diff-card__meta">
+                Warm up your thinking with <strong>4 approachable topics</strong>. No pressure — just flow. Perfect for getting started or shaking off the rust.
+              </p>
+              <span class="diff-card__vibe">- Low stress, high flow</span>
+            </div>
           </button>
+
+          <!-- MEDIUM MODE -->
           <button type="button" class="diff-card" data-diff="medium" role="option" aria-selected="false">
-            <span class="diff-card__flame">🔥</span>
-            <span class="diff-card__name">medium</span>
-            <span class="diff-card__desc">5 min · 250 words · balanced challenge</span>
-            <span class="diff-card__meta">temp 0.85</span>
+            <div class="diff-card__top">
+              <span class="diff-card__flame">🔥</span>
+              <span class="diff-card__badge">2 topics</span>
+            </div>
+            <div class="diff-card__body">
+              <div class="diff-card__header">
+                <span class="diff-card__name">Medium</span>
+                <span class="diff-card__time">5 min · 250 words</span>
+              </div>
+              <p class="diff-card__meta">
+                No fluff. No easy way out. Choose from <strong>2 challenging topics</strong> that demand real thinking. This is where clarity emerges under pressure.
+              </p>
+              <span class="diff-card__vibe">- Balanced pressure, sharp results</span>
+            </div>
           </button>
+
+          <!-- HARD MODE -->
           <button type="button" class="diff-card" data-diff="hard" role="option" aria-selected="false">
-            <span class="diff-card__flame">☠️</span>
-            <span class="diff-card__name">unhinged</span>
-            <span class="diff-card__desc">8 min · 400 words · complex &amp; unexpected</span>
-            <span class="diff-card__meta">temp 0.95</span>
+            <div class="diff-card__top">
+              <span class="diff-card__flame">☠️</span>
+              <span class="diff-card__badge">1 topic</span>
+            </div>
+            <div class="diff-card__body">
+              <div class="diff-card__header">
+                <span class="diff-card__name">Hard</span>
+                <span class="diff-card__time">8 min · 400 words</span>
+              </div>
+              <p class="diff-card__meta">
+                No choices. No escape. <strong>One unforgiving topic</strong> that forces you to think deeper than ever. Find out what you're actually made of.
+              </p>
+              <span class="diff-card__vibe">- Maximum intensity, pure survival</span>
+            </div>
           </button>
+
         </div>
+
         <div class="screen-nav">
           <button type="button" class="ghost-btn" data-back="domain">← back</button>
           <button type="button" id="toTimeBtn" class="cta-btn" disabled>

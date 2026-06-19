@@ -610,35 +610,352 @@ input[type="checkbox"]:checked::after {
 
 /* ---------- 9. Difficulty Selection ---------- */
 .diff-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.875rem;
-  margin-top: 2rem;
-  max-width: 640px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+  max-width: 1020px;
+  width: 100%;
 }
 
 .diff-card {
-  display: grid;
-  align-items: center;
+  display: flex;
+  flex-direction: column;
   background: var(--bg-surface);
   border: 1px solid var(--border-color);
-  padding: 1.25rem 1.5rem;
-  border-radius: var(--radius-md);
-  text-align: left;
+  border-radius: var(--radius-lg);
+  padding: 1.75rem 1.5rem 1.5rem;
   transition: all var(--transition-med);
+  cursor: pointer;
   position: relative;
   overflow: hidden;
-  grid-template-columns: auto 1fr auto;
-  gap: 1.25rem;
-  cursor: pointer;
+  text-align: left;
+  min-height: 240px;
+  gap: 0.75rem;
 }
 
-.diff-card:hover { border-color: var(--border-bright); transform: translateX(4px); }
-.diff-card.is-selected { border-color: var(--accent); background: var(--bg-surface-2); box-shadow: var(--shadow-accent); transform: translateX(4px); }
-.diff-card__flame { font-size: 1.75rem; line-height: 1; }
-.diff-card__name { font-family: var(--font-display); font-size: 1.1rem; color: var(--text-main); display: block; text-transform: uppercase; letter-spacing: 0.02em; }
-.diff-card__desc { font-size: 0.85rem; color: var(--text-muted); margin-top: 0.2rem; display: block; }
-.diff-card__meta { font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap; }
+/* Subtle gradient overlay */
+.diff-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(ellipse at 50% 0%, rgba(200, 255, 0, 0.05) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity var(--transition-med);
+  pointer-events: none;
+}
+
+.diff-card:hover {
+  border-color: var(--border-bright);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.diff-card:hover::before {
+  opacity: 1;
+}
+
+.diff-card.is-selected {
+  border-color: var(--accent);
+  background: var(--bg-surface-2);
+  box-shadow: 0 0 30px rgba(200, 255, 0, 0.08), inset 0 0 40px rgba(200, 255, 0, 0.02);
+  transform: translateY(-4px);
+}
+
+.diff-card.is-selected::before {
+  opacity: 1;
+}
+
+/* Top accent glow line */
+.diff-card.is-selected::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 20%;
+  right: 20%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  border-radius: 0 0 50% 50%;
+  filter: blur(1px);
+}
+
+/* Top row: icon + badge */
+.diff-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.diff-card__flame {
+  font-size: 2rem;
+  line-height: 1;
+  transition: transform var(--transition-fast);
+}
+
+.diff-card:hover .diff-card__flame {
+  transform: scale(1.1) rotate(3deg);
+}
+
+.diff-card.is-selected .diff-card__flame {
+  filter: drop-shadow(0 0 10px rgba(200, 255, 0, 0.3));
+}
+
+.diff-card__badge {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  background: var(--accent-dim);
+  padding: 0.25rem 0.8rem;
+  border-radius: 99px;
+  border: 1px solid rgba(200, 255, 0, 0.12);
+  white-space: nowrap;
+  transition: all var(--transition-fast);
+}
+
+.diff-card.is-selected .diff-card__badge {
+  background: var(--accent);
+  color: #000;
+  border-color: var(--accent);
+}
+
+/* Body: name + time + description + vibe */
+.diff-card__body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 0.4rem;
+}
+
+.diff-card__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  width: 100%;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.diff-card__name {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--text-main);
+  line-height: 1.2;
+}
+
+.diff-card__time {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.diff-card__meta {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.65;
+  margin: 0.1rem 0 0;
+}
+
+.diff-card__meta strong {
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+.diff-card__vibe {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+  opacity: 0.7;
+  transition: all var(--transition-fast);
+}
+
+.diff-card.is-selected .diff-card__vibe {
+  color: var(--accent);
+  opacity: 1;
+}
+
+/* ---------- Difficulty Screen Specific ---------- */
+.screen--difficulty .screen__inner {
+  max-width: 1020px;
+  margin: 0 auto;
+  padding: 0.5rem 0 4rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.screen--difficulty .display-lg {
+  text-align: center;
+  width: 100%;
+  margin-bottom: 0.25rem;
+}
+
+.screen--difficulty .eyebrow {
+  text-align: center;
+  width: 100%;
+}
+
+.screen--difficulty .lede {
+  text-align: center;
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+.screen--difficulty .screen-nav {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 2.5rem;
+  gap: 1rem;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 820px) {
+  .diff-list {
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    max-width: 600px;
+  }
+
+  .diff-card {
+    min-height: 210px;
+    padding: 1.5rem 1.25rem 1.25rem;
+  }
+
+  .diff-card__name {
+    font-size: 1.1rem;
+  }
+
+  .diff-card__flame {
+    font-size: 1.6rem;
+  }
+
+  .diff-card__meta {
+    font-size: 0.8rem;
+  }
+
+  .diff-card__vibe {
+    font-size: 0.65rem;
+  }
+
+  .screen--difficulty .lede {
+    font-size: 0.88rem;
+    padding: 0 0.5rem;
+  }
+}
+
+@media (max-width: 540px) {
+  .diff-list {
+    grid-template-columns: 1fr;
+    max-width: 400px;
+    gap: 0.875rem;
+  }
+
+  .diff-card {
+    min-height: auto;
+    padding: 1.25rem 1rem 1rem;
+  }
+
+  .diff-card__name {
+    font-size: 1rem;
+  }
+
+  .diff-card__flame {
+    font-size: 1.5rem;
+  }
+
+  .diff-card__time {
+    font-size: 0.6rem;
+  }
+
+  .diff-card__meta {
+    font-size: 0.78rem;
+    line-height: 1.6;
+  }
+
+  .diff-card__badge {
+    font-size: 0.5rem;
+    padding: 0.15rem 0.6rem;
+  }
+
+  .diff-card__vibe {
+    font-size: 0.6rem;
+    margin-top: 0.35rem;
+  }
+
+  .screen--difficulty .screen__inner {
+    padding: 0 0.5rem 3rem;
+  }
+
+  .screen--difficulty .screen-nav {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+    margin-top: 1.75rem;
+  }
+
+  .screen--difficulty .screen-nav .ghost-btn {
+    text-align: center;
+    padding: 0.6rem 1rem;
+  }
+
+  .screen--difficulty .screen-nav .cta-btn {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .screen--difficulty .lede {
+    font-size: 0.82rem;
+    margin-bottom: 1rem;
+    padding: 0 0.25rem;
+  }
+
+  .diff-card__header {
+    flex-wrap: wrap;
+    gap: 0.3rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .diff-card {
+    padding: 1rem 0.75rem 0.75rem;
+  }
+
+  .diff-card__name {
+    font-size: 0.9rem;
+  }
+
+  .diff-card__flame {
+    font-size: 1.3rem;
+  }
+
+  .diff-card__meta {
+    font-size: 0.72rem;
+  }
+
+  .diff-card__top {
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+}
 
 /* ---------- 10. Topic Screen ---------- */
 .topic-inner {
@@ -1123,3 +1440,5 @@ input[type="checkbox"]:checked::after {
 
 .dim-target-tag { font-family: var(--font-mono); font-size: 0.55rem; background: var(--accent); color: #000; padding: 0.1rem 0.4rem; border-radius: 99px; margin-left: 0.5rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; vertical-align: middle; }
 .wipe-toast__detail { display: block; font-size: 0.7rem; font-weight: 400; color: rgba(255, 255, 255, 0.8); margin-top: 0.25rem; white-space: normal; max-width: 90vw; }
+
+

@@ -105,35 +105,40 @@ const DIMENSION_TARGETING = {
   }
 };
 
-function buildTopicPrompt(domain, difficulty, durationMinutes, wordGoal, countHint, targetDimension) {
-  // Add extra instruction based on difficulty
-  let complexityNote = "";
+function buildTopicPrompt(domain, difficulty, durationMinutes, wordGoal, targetDimension) {
+  // Determine the number of topics to generate and the complexity based on difficulty
+  let topicCount, complexityNote, instructionText, jsonFormatExample;
+
   if (difficulty === "easy") {
-    complexityNote = "Make the topic concrete, relatable, and easy to dive into. Avoid abstract or multi-layered ideas.";
+    topicCount = 4;
+    complexityNote = "Make the topics concrete, relatable, and easy to dive into. Avoid abstract or multi-layered ideas.";
+    instructionText = `Generate EXACTLY ${topicCount} distinct writing topics, all within the domain. Each topic must be specific enough that two different writers would produce different pieces.`;
+    jsonFormatExample = `{
+  "topics": [
+    {"title": "topic 1", "direction": "2-3 sentence writing direction"},
+    {"title": "topic 2", "direction": "2-3 sentence writing direction"},
+    {"title": "topic 3", "direction": "2-3 sentence writing direction"},
+    {"title": "topic 4", "direction": "2-3 sentence writing direction"}
+  ]
+}`;
   } else if (difficulty === "medium") {
-    complexityNote = "Make the topic thought-provoking with a moderate level of abstraction. It should challenge the writer but remain accessible.";
-  } else if (difficulty === "hard") {
-    complexityNote = "Make the topic complex, unexpected, or multi-faceted. It should force the writer to think deeply and make connections. Surprise them.";
+    topicCount = 2;
+    complexityNote = "Make the topics thought-provoking with a moderate level of abstraction. They should challenge the writer but remain accessible.";
+    instructionText = `Generate EXACTLY ${topicCount} distinct writing topics, all within the domain. The two topics should be meaningfully different in angle and approach.`;
+    jsonFormatExample = `{
+  "topics": [
+    {"title": "topic 1", "direction": "2-3 sentence writing direction"},
+    {"title": "topic 2", "direction": "2-3 sentence writing direction"}
+  ]
+}`;
+  } else { // hard
+    topicCount = 1;
+    complexityNote = "Make the topic complex, unexpected, or multi-faceted. It should force the writer to think deeply and make connections. Surprise them with an angle that isn't obvious.";
+    instructionText = `Generate ONE single writing topic that can come from ANY domain or a surprising mashup of two domains. Make it specific, weird, sharp, or oddly niche - something that forces the writer to think on their feet.`;
+    jsonFormatExample = `{"title": "short punchy topic title", "direction": "2-3 sentence writing direction that guides the writer"}`;
   }
 
-  const difficultyInstructions = {
-    easy: `Generate ONE single writing topic that is directly and clearly within the domain. 
-It should be concrete, approachable, and give the writer a very clear angle to write from.
-The topic must be something a person can write meaningful, non-trivial content about - not a vague philosophical question.`,
-
-    medium: `Generate EXACTLY ${countHint} distinct writing topics, all within the domain but meaningfully different from each other in angle, perspective, and approach.
-Each topic must be specific enough that two different writers would produce completely different pieces.
-Avoid overlapping ideas - they must feel like 4 genuinely separate creative challenges.`,
-
-    hard: `Generate ONE single topic that can come from ANY domain or a surprising mashup of two domains. 
-Make it specific, weird, sharp, or oddly niche - something that forces the writer to think on their feet.
-Avoid generic or philosophical prompts; it should feel like a curveball that still has a clear starting point.`
-  } [difficulty];
-
   // --- Archetype-aware targeting block ---
-  // When the app has detected a consistently weak dimension across recent rounds,
-  // it passes that dimension here so the generated topic is calibrated to exercise
-  // exactly that muscle, rather than generating a purely random prompt.
   let targetingBlock = "";
   if (targetDimension && DIMENSION_TARGETING[targetDimension.key]) {
     const t = DIMENSION_TARGETING[targetDimension.key];
@@ -153,7 +158,7 @@ Difficulty: ${difficulty.toUpperCase()}
 Writer has: ${durationMinutes} minutes, must hit at least ${wordGoal} words.
 
 YOUR TASK:
-${difficultyInstructions}
+${instructionText}
 
 ${complexityNote}
 ${targetingBlock}
@@ -164,26 +169,14 @@ CRITICAL FORMAT RULES:
 - Be domain-specific - a Gaming topic should feel unmistakably about gaming culture, not generic creativity.
 - Avoid: "Write about...", "Discuss...", "Explore..." - use active, provocative framing instead: "Defend...", "Explain why...", "Design...", "Make the case that...", "Argue whether...", "Describe the world where..."
 
-${difficulty === "medium"
-  ? `Return ONLY valid JSON, no markdown fences, in this EXACT shape:
-{
-  "topics": [
-    {"title": "short punchy topic title", "direction": "2-3 sentence writing direction that guides the writer"},
-    {"title": "...", "direction": "..."},
-    {"title": "...", "direction": "..."},
-    {"title": "...", "direction": "..."}
-  ]
-}`
-  : `Return ONLY valid JSON, no markdown fences, in this EXACT shape:
-{"title": "short punchy topic title", "direction": "2-3 sentence writing direction that guides the writer"}`
-}`;
+Return ONLY valid JSON, no markdown fences, in this EXACT shape:
+${jsonFormatExample}`;
 }
 
 async function generateTopic(domain, difficulty, durationMinutes, wordGoal, targetDimension) {
   const temp = difficulty === "easy" ? 0.75 : difficulty === "medium" ? 0.9 : 1.0;
-  const countHint = 4;
-  const maxTokens = difficulty === "medium" ? 700 : 250;
-  const prompt = buildTopicPrompt(domain, difficulty, durationMinutes, wordGoal, countHint, targetDimension);
+  const maxTokens = difficulty === "medium" ? 600 : difficulty === "easy" ? 500 : 250;
+  const prompt = buildTopicPrompt(domain, difficulty, durationMinutes, wordGoal, targetDimension);
 
   const raw = await callGemini(prompt, {
     temperature: temp,
@@ -194,12 +187,12 @@ async function generateTopic(domain, difficulty, durationMinutes, wordGoal, targ
   // --- Robust JSON extraction ---
   let jsonString = raw;
 
-  // 1. Remove markdown code fences safely without breaking chat formatting
+  // 1. Remove markdown code fences
   const fenceMatch = raw.match(/[`]{3}(?:json)?\s*([\s\S]*?)[`]{3}/);
   if (fenceMatch) {
     jsonString = fenceMatch[1].trim();
   } else {
-    // 2. Try to extract the first JSON object using regex
+    // 2. Try to extract the first JSON object
     const jsonMatch = raw.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       jsonString = jsonMatch[0];
@@ -210,7 +203,7 @@ async function generateTopic(domain, difficulty, durationMinutes, wordGoal, targ
   try {
     parsed = JSON.parse(jsonString);
   } catch (_) {
-    // 3. Last resort: try to parse the raw string directly
+    // 3. Last resort: try to parse raw directly
     try {
       parsed = JSON.parse(raw);
     } catch (__) {
@@ -219,19 +212,22 @@ async function generateTopic(domain, difficulty, durationMinutes, wordGoal, targ
     }
   }
 
-  if (difficulty === "medium") {
+  // Determine the expected response shape based on difficulty
+  if (difficulty === "easy" || difficulty === "medium") {
+    // Expect an array of topics
     const topics = Array.isArray(parsed.topics)
       ? parsed.topics.filter(t => t && t.title && t.direction)
       : [];
-    if (topics.length === 0) {
-      throw new GeminiError("Gemini didn't return usable topic options.", "empty");
+    const expected = difficulty === "easy" ? 4 : 2;
+    if (topics.length < expected) {
+      throw new GeminiError(`Gemini returned only ${topics.length} topics, expected ${expected}. Retrying may help.`, "empty");
     }
     return { type: "choice", topics };
+  } else {
+    // hard: expect a single topic
+    if (!parsed.title || !parsed.direction) {
+      throw new GeminiError("Gemini returned an incomplete topic. Retrying may help.", "empty");
+    }
+    return { type: "single", topic: parsed.title, direction: parsed.direction };
   }
-
-  if (!parsed.title || !parsed.direction) {
-    throw new GeminiError("Gemini returned an incomplete topic. Retrying may help.", "empty");
-  }
-
-  return { type: "single", topic: parsed.title, direction: parsed.direction };
 }

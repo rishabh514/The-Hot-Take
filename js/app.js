@@ -39,9 +39,9 @@
   const STREAK_KEY = "spitter_streak_v5";
 
   const DIFFICULTY_CONFIG = {
-    easy: { duration: 3, wordGoal: 150, label: "mild" },
-    medium: { duration: 5, wordGoal: 250, label: "medium" },
-    hard: { duration: 8, wordGoal: 400, label: "unhinged" }
+    easy: { duration: 3, wordGoal: 150, label: "Easy" },
+    medium: { duration: 5, wordGoal: 250, label: "Medium" },
+    hard: { duration: 8, wordGoal: 400, label: "Hard" }
   };
 
   /* ---------------- Tiers ---------------- */
@@ -1654,9 +1654,9 @@
         <div class="cstat"><span class="cstat__num">${bestScore}</span><span class="cstat__label">best score</span></div>
         <div class="cstat"><span class="cstat__num">${totalWords.toLocaleString()}</span><span class="cstat__label">total words</span></div>
         <div class="cstat"><span class="cstat__num">🔥 ${streak}</span><span class="cstat__label">current streak</span></div>
-        <div class="cstat"><span class="cstat__num">🌱 ${diffCounts.easy}</span><span class="cstat__label">mild rounds</span></div>
-        <div class="cstat"><span class="cstat__num">🔥 ${diffCounts.medium}</span><span class="cstat__label">medium rounds</span></div>
-        <div class="cstat"><span class="cstat__num">☠️ ${diffCounts.hard}</span><span class="cstat__label">unhinged rounds</span></div>
+        <div class="cstat"><span class="cstat__num">🌱 ${diffCounts.easy}</span><span class="cstat__label">Easy Rounds</span></div>
+        <div class="cstat"><span class="cstat__num">🔥 ${diffCounts.medium}</span><span class="cstat__label">Medium Rounds</span></div>
+        <div class="cstat"><span class="cstat__num">☠️ ${diffCounts.hard}</span><span class="cstat__label">Hard Rounds</span></div>
       `;
     }
 
