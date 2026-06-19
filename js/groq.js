@@ -1,5 +1,5 @@
 /* ============================================================
-   THE SPITTER - Groq API wrapper v5
+   THE HOT TAKE - Groq API wrapper v5
    Model selection:
      - llama-3.3-70b-versatile → deep analysis (best quality)
      - meta-llama/llama-4-scout-17b-16e-instruct → fast/cheap tasks
@@ -7,7 +7,6 @@
 
 const GROQ_MODEL_ANALYSIS = "llama-3.3-70b-versatile";
 const GROQ_MODEL_FAST = "meta-llama/llama-4-scout-17b-16e-instruct";
-const GROQ_BASE = "https://api.groq.com/openai/v1/chat/completions";
 
 class GroqError extends Error {
   constructor(message, code) {
@@ -17,17 +16,9 @@ class GroqError extends Error {
   }
 }
 
-function getGroqApiKey() {
-  return window.__spitterGroqApiKey || "";
-}
-
 async function callGroq(prompt, { model = GROQ_MODEL_ANALYSIS, temperature = 0.3, maxOutputTokens = 1024,
     json = false } = {}) {
-  const apiKey = getGroqApiKey();
-  if (!apiKey || apiKey === "YOUR_GROQ_API_KEY_HERE") {
-    throw new GroqError("No Groq API key configured. Check config.js.", "no-key");
-  }
-
+  
   const body = {
     model,
     messages: [{ role: "user", content: prompt }],
@@ -38,16 +29,16 @@ async function callGroq(prompt, { model = GROQ_MODEL_ANALYSIS, temperature = 0.3
 
   let response;
   try {
-    response = await fetch(GROQ_BASE, {
+    // Routes to the secure Vercel API without exposing Authorization headers
+    response = await fetch('/api/groq', {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${apiKey}`
+        "Content-Type": "application/json"
       },
       body: JSON.stringify(body)
     });
   } catch (networkErr) {
-    throw new GroqError("Network error reaching Groq. Check your connection.", "network");
+    throw new GroqError("Network error reaching the server. Check your connection.", "network");
   }
 
   if (!response.ok) {
@@ -58,7 +49,7 @@ async function callGroq(prompt, { model = GROQ_MODEL_ANALYSIS, temperature = 0.3
     } catch (_) {}
 
     if (response.status === 401) {
-      throw new GroqError("Groq API key is invalid or not authorized. Check config.js.", "bad-key");
+      throw new GroqError("Server API key is invalid. Check Vercel Environment Variables.", "bad-key");
     }
     if (response.status === 429) {
       throw new GroqError("Rate limited by Groq. Wait a moment and retry.", "rate-limit");

@@ -1,10 +1,9 @@
 /* ============================================================
-   THE SPITTER - Gemini API wrapper
+   THE HOT TAKE - Gemini API wrapper
    Gemini 3.1 Flash Lite - Topic generation ONLY.
    ============================================================ */
 
 const GEMINI_MODEL = "gemini-3.1-flash-lite";
-const GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
 
 class GeminiError extends Error {
   constructor(message, code) {
@@ -14,17 +13,9 @@ class GeminiError extends Error {
   }
 }
 
-function getApiKey() {
-  return window.__spitterApiKey || "";
-}
-
 async function callGemini(prompt, { temperature = 0.7, maxOutputTokens = 400, json = false } = {}) {
-  const apiKey = getApiKey();
-  if (!apiKey || apiKey === "YOUR_GEMINI_API_KEY_HERE") {
-    throw new GeminiError("No Gemini API key configured. Open config.js and paste your key.", "no-key");
-  }
-
-  const url = `${GEMINI_BASE}/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(apiKey)}`;
+  // Routes to the secure Vercel API endpoint
+  const url = '/api/gemini';
 
   const body = {
     contents: [{ parts: [{ text: prompt }] }],
@@ -43,7 +34,7 @@ async function callGemini(prompt, { temperature = 0.7, maxOutputTokens = 400, js
       body: JSON.stringify(body)
     });
   } catch (networkErr) {
-    throw new GeminiError("Network error reaching Gemini. Check your connection.", "network");
+    throw new GeminiError("Network error reaching the server. Check your connection.", "network");
   }
 
   if (!response.ok) {
@@ -54,7 +45,7 @@ async function callGemini(prompt, { temperature = 0.7, maxOutputTokens = 400, js
     } catch (_) {}
 
     if (response.status === 400 && /API key/i.test(detail)) {
-      throw new GeminiError("That Gemini API key looks invalid. Check config.js.", "bad-key");
+      throw new GeminiError("Server API key looks invalid. Check Vercel Environment Variables.", "bad-key");
     }
     if (response.status === 403) {
       throw new GeminiError("Key rejected (403). It may lack Gemini API access.", "forbidden");
@@ -154,7 +145,7 @@ Do NOT mention this calibration in the topic or direction text itself - the writ
 `;
   }
 
-  return `You are a creative director for "The Spitter," a high-pressure writing app for Gen-Z users.
+  return `You are a creative director for "The Hot Take," a high-pressure writing app for Gen-Z users.
 
 Domain: ${domain.name}
 What this domain covers: ${domain.blurb}
@@ -203,8 +194,8 @@ async function generateTopic(domain, difficulty, durationMinutes, wordGoal, targ
   // --- Robust JSON extraction ---
   let jsonString = raw;
 
-  // 1. Remove markdown code fences (```json ... ```)
-  const fenceMatch = raw.match(/```(?:json)?\s*([\s\S]*?)```/);
+  // 1. Remove markdown code fences safely without breaking chat formatting
+  const fenceMatch = raw.match(/[`]{3}(?:json)?\s*([\s\S]*?)[`]{3}/);
   if (fenceMatch) {
     jsonString = fenceMatch[1].trim();
   } else {
