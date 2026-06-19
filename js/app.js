@@ -645,6 +645,28 @@
       updateWordCount();
       registerKeystroke();
     });
+
+    // --- ANTI-CHEAT: Prevent Pasting ---
+    writeArea.addEventListener("paste", (e) => {
+      e.preventDefault();
+      
+      // Flash the red warning toast if they try to paste
+      if (wipeToast) {
+        wipeToast.hidden = false;
+        announce("Pasting is strictly forbidden. Keep typing.");
+        const wipeDetail = $("#wipeToastDetail");
+        if (wipeDetail) {
+          wipeDetail.textContent = "You must generate your own thoughts in the arena.";
+          wipeDetail.hidden = false;
+        }
+        // Hide the toast after 2.4 seconds
+        setTimeout(() => { if (wipeToast) wipeToast.hidden = true; }, 2400);
+      }
+    });
+
+    // --- ANTI-CHEAT: Prevent Copying and Cutting ---
+    writeArea.addEventListener("copy", (e) => e.preventDefault());
+    writeArea.addEventListener("cut", (e) => e.preventDefault());
   }
 
   function registerKeystroke() {
