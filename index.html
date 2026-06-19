@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>THE HOT TAKE - spit it before the bar runs out</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="noise-overlay" aria-hidden="true"></div>
+<div id="app" class="app">
+  <header class="topbar">
+    <div class="topbar__brand">
+      <span class="topbar__mark">▮▮</span>
+      <span class="topbar__name">THE HOT TAKE</span>
+    </div>
+<nav class="topbar__nav" aria-label="Main navigation">
+      <a href="#" class="nav-link" data-screen="domain" title="Home">
+        <span class="nav-link__icon">🏠</span>
+        <span class="nav-link__label">Home</span>
+      </a>
+      <a href="#" class="nav-link" data-screen="how-to-play" title="How to Play">
+        <span class="nav-link__icon">🕹️</span>
+        <span class="nav-link__label">How to Play</span>
+      </a>
+      <a href="#" class="nav-link" data-screen="about" title="About">
+        <span class="nav-link__icon">ℹ️</span>
+        <span class="nav-link__label">About</span>
+      </a>
+      <a href="#" class="nav-link" data-screen="collection" title="Stats">
+        <span class="nav-link__icon">📊</span>
+        <span class="nav-link__label">Stats</span>
+      </a>
+      <a href="#" class="nav-link" data-screen="history" title="History">
+        <span class="nav-link__icon">📜</span>
+        <span class="nav-link__label">History
+          <span class="nav-link__badge" id="historyBadge">0</span>
+        </span>
+      </a>
+    </nav>
+    <div class="topbar__right">
+      <span class="topbar__streak" id="streakDisplay">🔥 0</span>
+    </div>
+  </header>
+
+  <main class="screens" id="screens">
+
+    <section class="screen screen--domain is-active" data-screen="domain" aria-label="Choose a domain">
+      <div class="screen__inner">
+        <p class="eyebrow">step 01 / pick your lane</p>
+        <h1 class="display-lg">what's living<br><span class="text-grad">in your head?</span></h1>
+        <p class="lede">15 arenas. pick the one that's already on fire in your brain - or surrender the wheel entirely.</p>
+        <div class="domain-grid" id="domainGrid" role="listbox" aria-label="Domain options"></div>
+        <div class="domain-actions">
+          <button type="button" id="aiDecideBtn" class="domain-action-btn domain-action-btn--ai">
+            <span class="domain-action-btn__icon">🎲</span>
+            <span class="domain-action-btn__main">Let AI Decide</span>
+            <span class="domain-action-btn__sub">Surrender control. We'll pick a random battlefield for you.</span>
+          </button>
+          <button type="button" id="startGameBtn" class="domain-action-btn domain-action-btn--start" disabled>
+            <span class="domain-action-btn__icon">🔥</span>
+            <span class="domain-action-btn__main">Start The Game</span>
+            <span class="domain-action-btn__sub">Lock in your chosen lane and start the timer.</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen screen--difficulty" data-screen="difficulty" aria-label="Choose difficulty">
+      <div class="screen__inner">
+        <p class="eyebrow">step 02 / set the heat</p>
+        <h1 class="display-lg">how spicy<br><span class="text-grad">do you want it?</span></h1>
+        <div class="diff-list" id="diffList" role="listbox" aria-label="Difficulty options">
+          <button type="button" class="diff-card" data-diff="easy" role="option" aria-selected="false">
+            <span class="diff-card__flame">🌱</span>
+            <span class="diff-card__name">mild</span>
+            <span class="diff-card__desc">3 min · 150 words · straightforward topic</span>
+            <span class="diff-card__meta">temp 0.7</span>
+          </button>
+          <button type="button" class="diff-card" data-diff="medium" role="option" aria-selected="false">
+            <span class="diff-card__flame">🔥</span>
+            <span class="diff-card__name">medium</span>
+            <span class="diff-card__desc">5 min · 250 words · balanced challenge</span>
+            <span class="diff-card__meta">temp 0.85</span>
+          </button>
+          <button type="button" class="diff-card" data-diff="hard" role="option" aria-selected="false">
+            <span class="diff-card__flame">☠️</span>
+            <span class="diff-card__name">unhinged</span>
+            <span class="diff-card__desc">8 min · 400 words · complex &amp; unexpected</span>
+            <span class="diff-card__meta">temp 0.95</span>
+          </button>
+        </div>
+        <div class="screen-nav">
+          <button type="button" class="ghost-btn" data-back="domain">← back</button>
+          <button type="button" id="toTimeBtn" class="cta-btn" disabled>
+            <span>generate topic</span>
+            <span class="cta-btn__arrow">→</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen screen--time" data-screen="time" hidden></section>
+
+    <section class="screen screen--topic" data-screen="topic" aria-label="Topic reveal">
+      <div class="screen__inner topic-inner">
+        <div id="topicLoading" class="topic-loading">
+          <div class="loader-ring"></div>
+          <p class="loader-text" id="loaderText">cooking up your topic…</p>
+        </div>
+        <div id="topicError" class="topic-error" hidden>
+          <p class="eyebrow">⚠ misfire</p>
+          <p class="topic-error__msg" id="topicErrorMsg"></p>
+          <button type="button" id="retryTopicBtn" class="cta-btn">retry</button>
+        </div>
+        <div id="topicSingle" class="topic-single" hidden>
+          <p class="eyebrow">step 04 / your topic</p>
+          <div id="targetBannerSingle" class="target-banner" hidden></div>
+          <div class="topic-card">
+            <p class="topic-card__text" id="topicSingleText"></p>
+            <p class="topic-card__direction" id="topicSingleDirection"></p>
+          </div>
+          <div style="margin-top:1.5rem;display:flex;flex-direction:column;align-items:center;gap:0.75rem;">
+            <button type="button" id="startWritingBtn" class="cta-btn">
+              <span>start the bar</span><span class="cta-btn__arrow">▶</span>
+            </button>
+            <button type="button" id="freeWriteFromSingleBtn" class="link-btn">✏️ skip this - write freely</button>
+          </div>
+        </div>
+        <div id="topicChoice" class="topic-choice" hidden>
+          <p class="eyebrow">step 04 / pick your poison</p>
+          <div id="targetBannerChoice" class="target-banner" hidden></div>
+          <div class="topic-choice__grid" id="topicChoiceGrid"></div>
+          <div class="topic-freewrite-divider">or</div>
+          <button type="button" id="freeWriteFromChoiceBtn" class="topic-freewrite-btn">
+            <span class="topic-freewrite-btn__icon">✏️</span>write freely about your domain
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen screen--write" data-screen="write" aria-label="Writing challenge">
+      <div class="write-inner">
+        <div class="write-hud">
+          <div class="hud-topic-bar">
+            <span class="hud-topic-label">topic</span>
+            <span class="hud-topic" id="hudTopic"></span>
+          </div>
+          <div id="hudDirectionWrap" class="hud-direction" hidden></div>
+          <div class="hud-row">
+            <div class="healthbar" aria-hidden="true">
+              <div class="healthbar__fill" id="healthbarFill"></div>
+            </div>
+            <div class="hud-clock" id="hudClock">02:00</div>
+          </div>
+          <div class="hud-row hud-row--meta">
+            <div class="hud-stat"><strong id="hudWordCount">0</strong> / <strong id="hudWordGoal">100</strong> words</div>
+            <div class="hud-stat hud-wpm-badge"><strong id="hudWPM">0</strong> WPM</div>
+            <div class="hud-pause" id="hudPauseIndicator" aria-live="polite"></div>
+          </div>
+        </div>
+        <div class="write-stage">
+          <textarea id="writeArea" class="write-area" placeholder="start typing. stop for 4 seconds and it's gone." spellcheck="false" aria-label="Your writing"></textarea>
+          <div class="static-wipe" id="staticWipe" aria-hidden="true"></div>
+        </div>
+        <div class="wipe-toast" id="wipeToast" role="alert" hidden>
+          <span class="wipe-toast__icon">⚠</span>
+          <span>pause detected. erased. keep moving.</span>
+          <span class="wipe-toast__detail" id="wipeToastDetail" hidden></span>
+        </div>
+        <button type="button" id="giveUpBtn" class="link-btn write-giveup">bail on this round</button>
+      </div>
+    </section>
+
+    <section class="screen screen--incomplete" data-screen="incomplete" hidden></section>
+
+    <section class="screen screen--analyzing" data-screen="analyzing" aria-label="Analyzing your writing">
+      <div class="screen__inner topic-inner">
+        <div class="topic-loading">
+          <div class="analyzing-orb"></div>
+          <p class="loader-text" id="analyzingText">reading your brain…</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen screen--results" data-screen="results" aria-label="Results">
+      <div class="screen__inner results-inner">
+
+        <div class="result-hero">
+          <div class="result-badge">
+            <div class="result-badge__icon" id="badgeIcon">🌱</div>
+            <div class="result-badge__score">
+              <span id="badgeScore">0</span><span class="result-badge__max">/100</span>
+            </div>
+            <div class="result-badge__tier" id="badgeTier">FINDING VOICE</div>
+          </div>
+          <div class="result-tier-info">
+            <p class="tier-description" id="tierDescription"></p>
+            <div class="badge-progress-wrap">
+              <div class="badge-progress-bar" id="badgeProgressBar" style="width:0%"></div>
+            </div>
+            <span class="badge-progress-label" id="badgeProgressLabel">0% to next tier</span>
+          </div>
+        </div>
+
+        <div id="improvementMsg" class="improvement-msg" hidden>
+          <span id="improvementText"></span>
+        </div>
+        <div id="incompleteMsg" class="incomplete-msg" hidden></div>
+
+        <div class="archetype-card">
+          <div class="archetype-card__head">
+            <span class="archetype-card__icon" id="archIcon">🧠</span>
+            <div>
+              <span class="archetype-card__label">your thinker archetype</span>
+              <span class="archetype-card__name" id="archName">The Thinker</span>
+            </div>
+          </div>
+          <p class="archetype-card__desc" id="archDesc"></p>
+          <p class="archetype-card__style" id="archStyle"></p>
+          <p class="archetype-card__ceiling" id="archCeiling"></p>
+        </div>
+
+        <div class="quick-insights">
+          <div class="insight-card insight-card--strength">
+            <div class="insight-card__label">✦ top strength</div>
+            <p id="topStrength" class="insight-card__text"></p>
+          </div>
+          <div class="insight-card insight-card--gap">
+            <div class="insight-card__label">▲ critical gap</div>
+            <p id="criticalGap" class="insight-card__text"></p>
+          </div>
+          <div class="insight-card insight-card--next">
+            <div class="insight-card__label">→ next step</div>
+            <p id="nextStep" class="insight-card__text"></p>
+          </div>
+        </div>
+
+        <div class="dim-section">
+          <p class="section-label">the 5 dimensions of your thinking</p>
+          <div class="dimension-cards" id="dimensionCards"></div>
+        </div>
+
+        <div class="momentum-wrap" id="momentumWrap" hidden></div>
+
+        <div class="pause-pattern-wrap" id="pausePatternWrap" hidden></div>
+
+        <div class="radar-wrap">
+          <p class="section-label">cognitive profile</p>
+          <svg id="radarChart" class="radar-svg" viewBox="0 0 320 320" aria-label="Dimension radar chart"></svg>
+          <div class="radar-legend" id="radarLegend"></div>
+        </div>
+
+        <div id="spellcheckWrap" class="spellcheck-wrap" hidden>
+          <p class="section-label">spell check</p>
+          <div class="feedback-card feedback-card--spell">
+            <p class="feedback-card__label">△ suggestions</p>
+            <ul id="spellcheckList"></ul>
+          </div>
+        </div>
+
+        <div class="history-wrap" id="historyWrap" hidden>
+          <p class="section-label">your score history</p>
+          <svg id="historyChart" class="history-svg" viewBox="0 0 400 120" aria-label="Score history"></svg>
+          <p class="history-note" id="historyNote"></p>
+        </div>
+
+        <div class="results-cta">
+          <button type="button" id="playAgainBtn" class="cta-btn">
+            <span>spit again</span><span class="cta-btn__arrow">↻</span>
+          </button>
+          <button type="button" id="newLaneBtn" class="ghost-btn">pick a new lane</button>
+        </div>
+
+      </div>
+    </section>
+
+    <section class="screen screen--history" data-screen="history" aria-label="History log">
+      <div class="screen__inner history-inner">
+        <div class="history-header-row">
+          <div>
+            <p class="eyebrow">📜 your log</p>
+            <h2 class="display-lg" style="font-size:clamp(1.8rem,4vw,2.8rem);">every spit<br><span class="text-grad">you've taken.</span></h2>
+          </div>
+          <div>
+            <span class="history-count" id="historyCount">0 attempts</span>
+            <button type="button" id="clearHistoryBtn" class="ghost-btn ghost-btn--danger" style="margin-left:0.75rem;">clear all</button>
+          </div>
+        </div>
+        <div id="historyList" class="history-list"></div>
+        <div class="screen-nav" style="margin-top:2rem;">
+          <button type="button" id="historyBackBtn" class="ghost-btn">← back to app</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen screen--about" data-screen="about" aria-label="About The Hot Take">
+      <div class="screen__inner about-inner">
+        <div class="about-hero">
+          <p class="eyebrow">the writing arena</p>
+          <h1 class="display-lg">pressure-test<br><span class="text-grad">how you think.</span></h1>
+          <p class="about-tagline">Most people can have a good idea. Very few can articulate one under pressure. The Hot Take is the gap between those two things - a timed writing arena that doesn't just grade what you write, but maps exactly how your brain works when the clock is running.</p>
+        </div>
+
+        <div class="about-section">
+          <h2 class="about-section__title">why this exists</h2>
+          <p class="about-section__body">Somewhere between the blank page and the publish button, most people give up. Not because they have nothing to say - but because thinking clearly under pressure is a skill nobody actually trains. Schools grade finished essays. Social media rewards hot takes. Nothing in between.<br><br>The Hot Take was built to live in that gap. Set a timer. Give you a topic. Erase your work if you stop. Then analyze not just the words you produce, but the <strong>quality of thinking</strong> behind them - using five psychology-backed dimensions that capture what separates average writing from genuinely sharp writing. You won't just write better. You'll start noticing how you think.</p>
+        </div>
+
+        <div class="about-section">
+          <h2 class="about-section__title">what it actually does to you</h2>
+          <div class="about-benefits">
+            <div class="about-benefit">
+              <span class="about-benefit__icon">⚡</span>
+              <div><strong>Kills Writer's Block</strong><p>The 4-second erasure rule means hesitation costs you everything you've written. You learn to commit to a thought fast - and keep moving even when it's imperfect.</p></div>
+            </div>
+            <div class="about-benefit">
+              <span class="about-benefit__icon">🔭</span>
+              <div><strong>Forces Deeper Thinking</strong><p>The AI isn't checking your spelling. It's scoring whether you're describing vs. analyzing vs. evaluating vs. creating - and telling you the exact line in your text where you stopped thinking hard.</p></div>
+            </div>
+            <div class="about-benefit">
+              <span class="about-benefit__icon">🧭</span>
+              <div><strong>Reveals Your Thinking Patterns</strong><p>After enough rounds, your archetype stops being a surprise. You'll start to recognize when you're going surface-level, when you're over-structuring, when you're burying the point. That awareness is the skill.</p></div>
+            </div>
+            <div class="about-benefit">
+              <span class="about-benefit__icon">📈</span>
+              <div><strong>Tracks Real Progress</strong><p>Not streaks. Not word counts. Score history, archetype shifts, and dimension-by-dimension improvement across sessions - so you can see exactly which part of your thinking is getting sharper.</p></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="about-section">
+          <h2 class="about-section__title">the 5 dimensions of your thinking</h2>
+          <div class="about-dims">
+            <div class="about-dim">
+              <span class="about-dim__icon">🏗️</span>
+              <div>
+                <strong>Structural Clarity</strong>
+                <span class="about-dim__theory">Schema Theory</span>
+                <p>Can a reader follow your mind? This dimension measures whether your ideas land in an order that builds - not just a pile of thoughts that happen to be in the same document. Transitions, paragraph logic, and how well you orient the reader before diving in.</p>
+              </div>
+            </div>
+            <div class="about-dim">
+              <span class="about-dim__icon">🔭</span>
+              <div>
+                <strong>Cognitive Depth</strong>
+                <span class="about-dim__theory">Bloom's Taxonomy</span>
+                <p>Are you on the surface or underneath it? Bloom's Taxonomy ranks thinking from basic recall all the way up to synthesis and evaluation. This score measures where on that ladder your writing actually lives - and whether you're pushing past description into genuine analysis.</p>
+              </div>
+            </div>
+            <div class="about-dim">
+              <span class="about-dim__icon">✨</span>
+              <div>
+                <strong>Original Synthesis</strong>
+                <span class="about-dim__theory">Divergent Thinking Research</span>
+                <p>Are you saying something only you would say? This dimension catches the moments where you pull two unrelated ideas together, find an angle nobody else took, or use a metaphor that actually works. High scores here mean your voice is present - not just correct.</p>
+              </div>
+            </div>
+            <div class="about-dim">
+              <span class="about-dim__icon">🎙️</span>
+              <div>
+                <strong>Rhetorical Power</strong>
+                <span class="about-dim__theory">Aristotle's Ethos/Pathos/Logos</span>
+                <p>Does your writing move people or just inform them? Aristotle's framework - credibility, emotion, logic - is still the best map of what makes an argument land. This dimension scores how effectively you're deploying all three, and which one you're leaning on as a crutch.</p>
+              </div>
+            </div>
+            <div class="about-dim">
+              <span class="about-dim__icon">🧭</span>
+              <div>
+                <strong>Metacognitive Awareness</strong>
+                <span class="about-dim__theory">Flavell's Metacognition Model</span>
+                <p>The rarest dimension. Do you know what you actually think - and can you show it? This score measures whether you're aware of your own claims, honest about their limits, and writing with genuine intellectual confidence rather than performed certainty. High scorers here tend to be the most interesting writers in the room.</p>
+              </div>
+            </div>
+            <div class="about-dim about-dim--momentum">
+              <span class="about-dim__icon">📈</span>
+              <div>
+                <strong>Momentum Index</strong>
+                <span class="about-dim__theory">Your Rolling 3-Session Average</span>
+                <p>The 6th dimension - and the only one that isn't a snapshot. Every score above judges this single round in isolation. Momentum compares it against your own recent average instead, so you're not just chasing a fixed ceiling, you're competing against yourself. A 55 that's +12 on your average means more than a 70 that's flat.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="about-section">
+          <h2 class="about-section__title">two things you won't notice until you've played a few rounds</h2>
+          <div class="about-benefits">
+            <div class="about-benefit">
+              <span class="about-benefit__icon">⏸</span>
+              <div><strong>Your Pauses Are Data</strong><p>Every time the 4-second wipe hits, we log exactly where you were - word count, time elapsed, and the line you'd just written. After a few rounds, your results page shows you the pattern: how many pauses you typically hit, and roughly where in a piece your thinking tends to stall.</p></div>
+            </div>
+            <div class="about-benefit">
+              <span class="about-benefit__icon">🎯</span>
+              <div><strong>Topics Adapt to Your Gaps</strong><p>Once you've got a few rounds of history, topic generation stops being purely random. If one dimension has been consistently lagging, the next topic is quietly calibrated to put pressure exactly there - without ever telling you that's what's happening mid-round.</p></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="about-section">
+          <h2 class="about-section__title">the 6 thinker archetypes</h2>
+          <p class="about-section__body" style="margin-bottom:1.25rem;">After every round, your dimension scores unlock one of six archetypes. They're not personality types or labels - they're a precise read of <em>how</em> you process and communicate ideas. Most people get the same one for weeks, then shift. That shift is growth.</p>
+          <div class="archetype-grid">
+            <div class="archetype-card-about">
+              <div class="archetype-card-about__head">
+                <span class="archetype-card-about__icon">🔗</span>
+                <strong>The Systems Thinker</strong>
+              </div>
+              <p class="archetype-card-about__strength">You see architecture where others see chaos. Before you've written a word, you already know how the argument fits together - and readers feel that scaffolding holding everything in place.</p>
+              <p class="archetype-card-about__trigger">Unlocked by: High Structural Clarity + Cognitive Depth</p>
+              <p class="archetype-card-about__shadow">Blind spot: You can over-build. Sometimes the best argument is two sentences, not a framework with sub-points.</p>
+            </div>
+            <div class="archetype-card-about">
+              <div class="archetype-card-about__head">
+                <span class="archetype-card-about__icon">⚡</span>
+                <strong>The Intuitive Rebel</strong>
+              </div>
+              <p class="archetype-card-about__strength">You write like you talk - fast, punchy, alive. Your instincts are sharp and you hook people before they realize they've been hooked. The first line of your writing is almost always your best.</p>
+              <p class="archetype-card-about__trigger">Unlocked by: High Original Synthesis + Rhetorical Power</p>
+              <p class="archetype-card-about__shadow">Blind spot: The hook lands but the argument doesn't always follow through. Brilliance without structure leaves readers impressed but unconvinced.</p>
+            </div>
+            <div class="archetype-card-about">
+              <div class="archetype-card-about__head">
+                <span class="archetype-card-about__icon">🌊</span>
+                <strong>The Deep Diver</strong>
+              </div>
+              <p class="archetype-card-about__strength">You don't accept the obvious reading of anything. You push past the surface of an idea until you find the thing beneath it - and then the thing beneath that. Your writing rewards re-reading.</p>
+              <p class="archetype-card-about__trigger">Unlocked by: High Cognitive Depth + Metacognitive Awareness</p>
+              <p class="archetype-card-about__shadow">Blind spot: Depth without direction loses people. Your reader needs a rope, not just proof that the water is deep.</p>
+            </div>
+            <div class="archetype-card-about">
+              <div class="archetype-card-about__head">
+                <span class="archetype-card-about__icon">🕸️</span>
+                <strong>The Connector</strong>
+              </div>
+              <p class="archetype-card-about__strength">Your superpower is the unexpected bridge. You link a business insight to a philosophy paper to a meme - and somehow it works. You make readers feel smarter for following your train of thought.</p>
+              <p class="archetype-card-about__trigger">Unlocked by: High Original Synthesis + Metacognitive Awareness</p>
+              <p class="archetype-card-about__shadow">Blind spot: Connections need to earn their place. Without enough structure, a web of ideas can feel like a tangle.</p>
+            </div>
+            <div class="archetype-card-about">
+              <div class="archetype-card-about__head">
+                <span class="archetype-card-about__icon">📢</span>
+                <strong>The Amplifier</strong>
+              </div>
+              <p class="archetype-card-about__strength">You understand that an idea only exists if someone believes it. Your writing is built to land - you choose words for impact, structure sentences for momentum, and always know where you're trying to take the reader.</p>
+              <p class="archetype-card-about__trigger">Unlocked by: High Rhetorical Power + Structural Clarity</p>
+              <p class="archetype-card-about__shadow">Blind spot: Persuasion without substance gets noticed eventually. The most compelling writing also has something real to say.</p>
+            </div>
+            <div class="archetype-card-about">
+              <div class="archetype-card-about__head">
+                <span class="archetype-card-about__icon">⛏️</span>
+                <strong>The Excavator</strong>
+              </div>
+              <p class="archetype-card-about__strength">You have the rarest quality in writing: you actually mean it. Your thinking is genuine and your observations are earned - you just haven't yet found the voice that does justice to what's going on inside your head.</p>
+              <p class="archetype-card-about__trigger">Unlocked by: High Cognitive Depth, other dimensions developing</p>
+              <p class="archetype-card-about__shadow">Blind spot: Nothing permanent. This archetype has the highest ceiling of all six. The work is communication, not thought - and communication is learnable.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="about-section">
+          <h2 class="about-section__title">the 5 badges you can earn</h2>
+          <div class="badges-detail-grid">
+            <div class="badge-detail-card">
+              <span class="badge-detail-card__icon">📡</span>
+              <div class="badge-detail-card__info">
+                <strong class="badge-detail-card__name">Raw Signal</strong>
+                <span class="badge-detail-card__range">Score: 0 – 20</span>
+                <p>The signal is there. It's faint, scattered, still finding frequency - but it's transmitting. This badge doesn't mean you wrote badly. It means you showed up, put words down under pressure, and didn't quit. That's the whole game at this stage. Every writer you've ever admired started exactly here.</p>
+              </div>
+            </div>
+            <div class="badge-detail-card">
+              <span class="badge-detail-card__icon">🌱</span>
+              <div class="badge-detail-card__info">
+                <strong class="badge-detail-card__name">Finding Voice</strong>
+                <span class="badge-detail-card__range">Score: 21 – 40</span>
+                <p>Something is emerging. The ideas are there - you can feel them - but the writing is still catching up to the thought. This is the hardest stage, because you're good enough to know what sharp writing looks like but not yet consistent enough to produce it on demand. Most people plateau here and call it their ceiling. It isn't.</p>
+              </div>
+            </div>
+            <div class="badge-detail-card">
+              <span class="badge-detail-card__icon">⚡</span>
+              <div class="badge-detail-card__info">
+                <strong class="badge-detail-card__name">Sharp Mind</strong>
+                <span class="badge-detail-card__range">Score: 41 – 60</span>
+                <p>Now we're talking. Your thinking has an edge to it - you're not just filling the word count, you're making actual moves on the page. Structure is forming, arguments are landing, and your ideas are starting to feel like they belong to you specifically. This tier is where most people realize they're better at this than they thought.</p>
+              </div>
+            </div>
+            <div class="badge-detail-card">
+              <span class="badge-detail-card__icon">🔮</span>
+              <div class="badge-detail-card__info">
+                <strong class="badge-detail-card__name">The Articulate</strong>
+                <span class="badge-detail-card__range">Score: 61 – 80</span>
+                <p>You've crossed the line between writing and thinking-in-public. Your arguments are precise, your language earns its place, and your point of view is unmistakably yours. People in this tier often don't realize how rare this is - most writing never gets here even with unlimited time. You did it under pressure.</p>
+              </div>
+            </div>
+            <div class="badge-detail-card">
+              <span class="badge-detail-card__icon">🧠</span>
+              <div class="badge-detail-card__info">
+                <strong class="badge-detail-card__name">Neural Fire</strong>
+                <span class="badge-detail-card__range">Score: 81 – 100</span>
+                <p>This is what it looks like when structure, depth, originality, rhetoric, and self-awareness all fire at once. Under a time limit. Without editing. Less than 5% of sessions reach this tier - not because the bar is arbitrary, but because what it requires is genuinely uncommon. You thought clearly, argued sharply, and said something worth reading. Screenshot this. It counts.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="screen-nav" style="margin-top:2rem;">
+          <button type="button" id="aboutBackBtn" class="ghost-btn">← back</button>
+          <button type="button" id="aboutPlayBtn" class="cta-btn">
+            <span>start a round</span><span class="cta-btn__arrow">→</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen screen--collection" data-screen="collection" aria-label="Your Collection and Stats">
+      <div class="screen__inner collection-inner">
+        <p class="eyebrow">🏆 your collection</p>
+        <h2 class="display-lg" style="font-size:clamp(1.8rem,4vw,2.8rem);">everything<br><span class="text-grad">you've earned.</span></h2>
+
+        <div class="collection-stats-grid" id="collectionStatsGrid">
+          </div>
+
+        <div class="collection-section">
+          <p class="section-label">badge collection</p>
+          <p class="collection-sub" id="collectionBadgeSub"></p>
+          <div class="collection-badges" id="collectionBadges">
+            </div>
+        </div>
+
+        <div class="collection-section">
+          <p class="section-label">archetype appearances</p>
+          <div class="collection-archetypes" id="collectionArchetypes">
+            </div>
+        </div>
+
+        <div class="collection-section">
+          <p class="section-label">domains explored</p>
+          <div class="collection-domains" id="collectionDomains">
+            </div>
+        </div>
+
+        <div class="collection-section" id="collectionBestsSection">
+          <p class="section-label">personal bests</p>
+          <div class="collection-bests" id="collectionBests"></div>
+        </div>
+
+        <div class="screen-nav" style="margin-top:2rem;">
+          <button type="button" id="collectionBackBtn" class="ghost-btn">← back to app</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen screen--history-detail" data-screen="history-detail" aria-label="Session detail">
+      <div class="screen__inner results-inner">
+        <div class="history-detail-header">
+          <button type="button" id="historyDetailBackBtn" class="ghost-btn">← back to history</button>
+          <p class="eyebrow" style="margin-top:0.75rem;" id="historyDetailMeta"></p>
+        </div>
+
+        <div class="result-hero">
+          <div class="result-badge">
+            <div class="result-badge__icon" id="detailBadgeIcon">🌱</div>
+            <div class="result-badge__score">
+              <span id="detailBadgeScore">0</span><span class="result-badge__max">/100</span>
+            </div>
+            <div class="result-badge__tier" id="detailBadgeTier">-</div>
+          </div>
+          <div class="result-tier-info">
+            <p class="tier-description" id="detailTierDescription"></p>
+            <div class="badge-progress-wrap">
+              <div class="badge-progress-bar" id="detailProgressBar" style="width:0%"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="archetype-card" style="margin-top:1.5rem;">
+          <div class="archetype-card__head">
+            <span class="archetype-card__icon" id="detailArchIcon">🧠</span>
+            <div>
+              <span class="archetype-card__label">thinker archetype</span>
+              <span class="archetype-card__name" id="detailArchName">-</span>
+            </div>
+          </div>
+          <p class="archetype-card__desc" id="detailArchDesc"></p>
+          <p class="archetype-card__style" id="detailArchStyle"></p>
+          <p class="archetype-card__ceiling" id="detailArchCeiling"></p>
+        </div>
+
+        <div class="quick-insights" style="margin-top:1.5rem;">
+          <div class="insight-card insight-card--strength">
+            <div class="insight-card__label">✦ top strength</div>
+            <p id="detailTopStrength" class="insight-card__text"></p>
+          </div>
+          <div class="insight-card insight-card--gap">
+            <div class="insight-card__label">▲ critical gap</div>
+            <p id="detailCriticalGap" class="insight-card__text"></p>
+          </div>
+          <div class="insight-card insight-card--next">
+            <div class="insight-card__label">→ next step</div>
+            <p id="detailNextStep" class="insight-card__text"></p>
+          </div>
+        </div>
+
+        <div class="dim-section" style="margin-top:1.5rem;">
+          <p class="section-label">5 dimensions</p>
+          <div class="dimension-cards" id="detailDimensionCards"></div>
+        </div>
+
+        <div class="momentum-wrap" id="detailMomentumWrap" style="margin-top:1.5rem;" hidden></div>
+
+        <div class="pause-pattern-wrap" id="detailPausePatternWrap" style="margin-top:1.5rem;" hidden></div>
+
+        <div class="radar-wrap" style="margin-top:1.5rem;">
+          <p class="section-label">cognitive profile</p>
+          <svg id="detailRadarChart" class="radar-svg" viewBox="0 0 320 320" aria-label="Dimension radar chart"></svg>
+          <div class="radar-legend" id="detailRadarLegend"></div>
+        </div>
+
+        <div class="collection-section" style="margin-top:1.5rem;">
+          <p class="section-label">what you wrote</p>
+          <div class="detail-text-block" id="historyDetailText"></div>
+        </div>
+
+        <div class="screen-nav" style="margin-top:2rem;">
+          <button type="button" id="historyDetailBackBtn2" class="ghost-btn">← back to history</button>
+        </div>
+      </div>
+    </section>
+
+    <!--How to play section-->
+
+    <section class="screen screen--how-to-play" data-screen="how-to-play" aria-label="How to Play">
+      <div class="screen__inner about-inner">
+        
+        <div class="about-hero">
+          <p class="eyebrow">the rules of engagement</p>
+          <h1 class="display-lg">how to survive<br><span class="text-grad">the arena.</span></h1>
+          <p class="about-tagline">This isn't a casual journaling app. THE HOT TAKE is a pressure cooker designed to bypass your inner critic. If you hesitate, you lose everything. Read the rules before you step into the arena.</p>
+        </div>
+
+        <div class="about-section">
+          <h2 class="about-section__title">The Core Mechanic: The 4-Second Wipe</h2>
+          <p class="about-section__body">Hesitation is fatal. The exact second you start typing, a hidden 4-second fuse is lit. Every single keystroke resets that timer. <strong>If your fingers stop moving for 4 seconds, the screen flashes red, and everything you just wrote is permanently wiped into the void.</strong><br><br>There are no undos. There are no safety nets. The system is designed to break your habit of self-editing. Do not overthink your argument. Do not stop to correct typos. Just keep spitting your thoughts onto the page.</p>
+        </div>
+
+        <div class="about-section">
+          <h2 class="about-section__title">The Setup</h2>
+          <div class="about-benefits">
+            <div class="about-benefit">
+              <span class="about-benefit__icon">1️⃣</span>
+              <div>
+                <strong>Pick Your Lane</strong>
+                <p>Choose your battlefield from 15 specific cultural domains—from Pop Culture to Finance. Or hit 'Let the Algorithm Decide' if you want to surrender to chaos and write completely blind.</p>
+              </div>
+            </div>
+            <div class="about-benefit">
+              <span class="about-benefit__icon">2️⃣</span>
+              <div>
+                <strong>Set The Heat</strong>
+                <p>Choose your constraints. Mild (3 min, 150 words) is a quick warm-up. Medium (5 min, 250 words) requires structured thought. Unhinged (8 min, 400 words) demands deep, sustained arguments under intense pressure.</p>
+              </div>
+            </div>
+            <div class="about-benefit">
+              <span class="about-benefit__icon">3️⃣</span>
+              <div>
+                <strong>The Prompt & Lock In</strong>
+                <p>The AI will generate a highly opinionated prompt based on your domain. You can accept it, or choose to 'Free Write' on your own topic. Once you hit 'Start the Bar', the fuse is live.</p>
+              </div>
+            </div>
+            <div class="about-benefit">
+              <span class="about-benefit__icon">4️⃣</span>
+              <div>
+                <strong>Survive & Submit</strong>
+                <p>You must reach your target word count before the master clock hits zero. If you survive, our AI will process your text, tear your brain apart, and score you across 5 cognitive dimensions.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="about-section">
+          <h2 class="about-section__title">Pro-Tips for Survival</h2>
+          <div class="about-benefits">
+            <div class="about-benefit">
+              <span class="about-benefit__icon">🚫</span>
+              <div>
+                <strong>Abandon the Backspace</strong>
+                <p>Typos literally do not matter. The AI analyzer is smart enough to read through your spelling mistakes. If you try to backspace and fix a word, you will likely trigger the 4-second wipe. Leave the mistakes.</p>
+              </div>
+            </div>
+            <div class="about-benefit">
+              <span class="about-benefit__icon">🌉</span>
+              <div>
+                <strong>Build Thought Bridges</strong>
+                <p>If your brain freezes, use transition words to buy yourself time. Slowly typing "Furthermore," "On the other hand," or "What this really means is..." gives you a 4-second runway to figure out your next actual point.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Call to Action Buttons -->
+        <div class="screen-nav screen-nav--left" style="margin-top:2.5rem;">
+          <button type="button" class="ghost-btn" data-back="domain">← back to app</button>
+          <button type="button" class="cta-btn" data-back="domain">
+            <span>ready? pick a lane</span><span class="cta-btn__arrow">→</span>
+          </button>
+        </div>
+        
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div class="sr-only" id="srAnnouncer" aria-live="assertive"></div>
+<script src="js/config.js"></script>
+<script src="js/domains.js"></script>
+<script src="js/gemini.js"></script>
+<script src="js/groq.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
