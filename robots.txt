@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+# Block internal/API routes from crawlers
+Disallow: /api/
+Disallow: /_vercel/
+
+# Sitemap location
+Sitemap: https://thehottake.app/sitemap.xml

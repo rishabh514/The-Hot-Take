@@ -1,0 +1,174 @@
+{
+  "meta": {
+    "title": "The Hot Take — FAQ & How It Works",
+    "subtitle": "Everything you need to know about timed writing, AI scoring, and training your thinking.",
+    "eyebrow": "questions & answers"
+  },
+  "sections": [
+    {
+      "id": "what-is",
+      "heading": "What is The Hot Take?",
+      "items": [
+        {
+          "q": "What is The Hot Take?",
+          "a": "The Hot Take is a free timed writing app that uses AI to score your thinking — not just your grammar. You pick a topic domain (gaming, finance, philosophy, pop culture, and 11 others), set a difficulty level, and write against a countdown clock. Stop typing for 4 seconds and everything you wrote gets permanently erased. Survive the clock, hit your word count, and an AI model analyzes your response across 5 psychology-backed cognitive dimensions."
+        },
+        {
+          "q": "Who is The Hot Take for?",
+          "a": "The Hot Take is built for Gen Z writers, students, content creators, debaters, and anyone who wants to think faster and communicate sharper under pressure. It is especially useful for people preparing for case interviews, entrance exams, essay-based tests, or anyone who gets writer's block the second they face a blank page."
+        },
+        {
+          "q": "Is The Hot Take free to use?",
+          "a": "Yes. The Hot Take is completely free. No account required, no paywall, no limits. Open the app, pick a lane, and start writing."
+        },
+        {
+          "q": "Is The Hot Take a game or a productivity tool?",
+          "a": "Both. The game mechanics — the erasure timer, the difficulty modes, the archetype reveal — make it genuinely fun and replayable. But the AI analysis is serious: it uses frameworks from cognitive psychology (Bloom's Taxonomy, Schema Theory, Aristotle's Rhetoric, Divergent Thinking research, Flavell's metacognition model) to give you feedback that's more precise than anything a casual writing app provides."
+        }
+      ]
+    },
+    {
+      "id": "how-it-works",
+      "heading": "How Does It Work?",
+      "items": [
+        {
+          "q": "How does The Hot Take work step by step?",
+          "a": "Step 1: Pick a domain from 15 writing arenas — from pop culture and anime to tech, mental health, finance, and philosophy. Step 2: Choose a difficulty — Easy (3 min, 150 words, 4 topics to choose from), Medium (5 min, 250 words, 2 topics), or Hard (8 min, 400 words, 1 surprise topic). Step 3: The AI generates a fresh, opinionated writing prompt based on your domain. Step 4: Hit Start and write — if you pause for 4 seconds, your text is wiped. Step 5: Submit your piece and receive a full AI-generated cognitive analysis with scores, archetypes, and a concrete improvement plan."
+        },
+        {
+          "q": "What is the 4-second erasure rule?",
+          "a": "The 4-second erasure rule is the core mechanic of The Hot Take. The instant you start typing, a hidden timer begins. Every keystroke resets it. If your fingers stop moving for 4 full seconds, the screen flashes red and everything you have written is permanently deleted — there is no undo. This forces you to commit to your thoughts and keep moving even when the idea is not fully formed yet. It sounds brutal because it is. That's the point: it trains you to bypass your inner critic and generate first drafts at speed."
+        },
+        {
+          "q": "What happens if I stop typing and lose my work?",
+          "a": "The text is gone — permanently. The timer shows a red warning flash just before the wipe, but there is no recovery. The recommended strategy is to use transition phrases like 'What this really means is...' or 'On the other hand...' to buy yourself time when your brain freezes, instead of sitting in silence."
+        },
+        {
+          "q": "Can I write freely without a prompt?",
+          "a": "Yes. On both Easy and Hard modes, there is a 'Write Freely' option that lets you skip the AI-generated topic and write about anything within your chosen domain. The AI will infer your intent from the text itself and score your piece without a reference prompt."
+        },
+        {
+          "q": "What does the AI actually look for when it scores my writing?",
+          "a": "The AI does not just check grammar or spelling. It analyzes five cognitive dimensions: Structural Clarity (are your ideas organized into a logical sequence a reader can follow?), Cognitive Depth (are you describing or actually analyzing and evaluating?), Original Synthesis (are you connecting ideas in unexpected ways?), Rhetorical Power (are you making a case or just explaining?), and Metacognitive Awareness (do you know what you think and why?). Each dimension gets a score out of 100, a quote pulled directly from your text, and a specific rewrite suggestion."
+        }
+      ]
+    },
+    {
+      "id": "scoring",
+      "heading": "Scoring, Archetypes & Dimensions",
+      "items": [
+        {
+          "q": "How is the overall score calculated?",
+          "a": "The overall score is a weighted average across the 5 cognitive dimensions: Structural Clarity (20%), Cognitive Depth (25%), Original Synthesis (20%), Rhetorical Power (20%), and Metacognitive Awareness (15%). Cognitive Depth is weighted highest because it most reliably separates surface-level writing from genuinely sharp thinking."
+        },
+        {
+          "q": "What are the score tiers?",
+          "a": "Scores fall into 5 tiers. Raw Signal (0–20): you are broadcasting but the signal is faint. Finding Voice (21–40): ideas are taking shape but execution is rough. Sharp Mind (41–60): clear thinking with intent. The Articulate (61–80): sophisticated, precise, and distinct — top 20% territory. Neural Fire (81–100): rare mastery of structure, depth, and originality simultaneously."
+        },
+        {
+          "q": "What are thinker archetypes?",
+          "a": "After each session, the AI assigns you one of six thinker archetypes based on which cognitive dimensions dominate your writing. The Systems Thinker (🔗) scores high on Structural Clarity and Cognitive Depth — you see the skeleton of ideas. The Intuitive Rebel (⚡) leads with Original Synthesis and Rhetorical Power — flair and gut over grounding. The Deep Diver (🌊) scores high on Cognitive Depth and Metacognitive Awareness — nuanced but sometimes abstract. The Connector (🕸️) links domains others miss through Original Synthesis. The Amplifier (📢) lands points well via Rhetorical Power and Structural Clarity. The Excavator (⛏️) thinks deeply but has not yet found the right communication voice."
+        },
+        {
+          "q": "Does my archetype change over time?",
+          "a": "Yes. Your archetype is assigned fresh each session based on the dimensions where you scored highest in that specific piece. Over multiple rounds, The Hot Take tracks your rolling average across sessions and will start targeting your weakest dimension — meaning the AI will generate topics that specifically force you to exercise the skill you are worst at, even if it does not tell you that directly."
+        },
+        {
+          "q": "What is the Momentum Index?",
+          "a": "The Momentum Index is a measure of how your current session's scores compare to your rolling 3-session average. A positive momentum score means you are improving relative to your recent baseline. It appears on your results screen once you have completed at least 3 sessions, giving you a trend line rather than just a snapshot score."
+        },
+        {
+          "q": "Why does the AI quote my own text back at me?",
+          "a": "Because generic writing feedback is useless. When the AI says 'your rhetorical power is low,' that means nothing without a reference point. The Hot Take pulls the specific sentence or phrase from your writing that best illustrates each dimension — either as evidence of what you did well, or as the exact passage where you could have done better. The fix it offers is targeted to that exact excerpt, not a general tip."
+        }
+      ]
+    },
+    {
+      "id": "domains",
+      "heading": "Domains & Topics",
+      "items": [
+        {
+          "q": "What writing domains are available?",
+          "a": "The Hot Take has 15 writing arenas across 4 clusters. Culture & Digital Life: Pop Culture & Internet Lore, Anime & Manga, Gaming & Esports, Movies & TV, Music & Audio. Lifestyle & Experiences: Food & Culinary Culture, Travel & Exploration, Fashion & Aesthetics, Fitness & Biohacking. Mind & Society: Mental Health & Psychology, Relationships & Dating, True Crime & Mysteries, Late-Night Philosophy. Hustle & Future: Tech & AI, Business Finance & Hustle."
+        },
+        {
+          "q": "Are the writing topics the same every time?",
+          "a": "No. Topics are generated fresh by the AI every single session. Easy mode gives you 4 new topics to choose from. Medium gives you 2. Hard gives you 1 that you have no say in. The AI generates domain-specific prompts that are opinionated, specific, and designed to require a real argument — not a surface-level answer."
+        },
+        {
+          "q": "Can I let the app choose my domain for me?",
+          "a": "Yes. The 'Let AI Decide' button on the home screen triggers a random domain selector with a visual animation that cycles through all 15 domains before landing on one. It is a good option if you want to practice writing outside your comfort zone."
+        }
+      ]
+    },
+    {
+      "id": "difficulty",
+      "heading": "Difficulty & Word Count",
+      "items": [
+        {
+          "q": "What is the difference between Easy, Medium, and Hard mode?",
+          "a": "Easy mode gives you 3 minutes to write 150 words and 4 different topics to choose from — low pressure, high flow. Medium mode gives you 5 minutes for 250 words with 2 topic choices — balanced challenge with structured thinking required. Hard mode gives you 8 minutes for 400 words with exactly 1 topic, no alternatives, no escape — the prompt can come from any domain or an unexpected mashup of two."
+        },
+        {
+          "q": "What happens if I do not hit the word count in time?",
+          "a": "If the master timer hits zero before you reach your word goal, your session is marked as incomplete. You can still submit your text and receive a partial AI analysis — but the incomplete status is recorded in your session history."
+        },
+        {
+          "q": "Does typing speed affect my score?",
+          "a": "Your WPM (words per minute) is tracked and displayed in real time during the writing session. It does not directly factor into your cognitive score, but it shows up in your session history. The scoring is entirely based on the quality of thinking in your text — not how fast it arrived."
+        }
+      ]
+    },
+    {
+      "id": "privacy-data",
+      "heading": "Data, Privacy & Sessions",
+      "items": [
+        {
+          "q": "Does The Hot Take save my writing?",
+          "a": "Your session history — including topics, scores, domain choices, and the text you wrote — is saved locally in your browser using localStorage. Nothing is sent to an external server or stored in a database. Clearing your browser data will erase your history. Your writing never leaves your device."
+        },
+        {
+          "q": "Do I need to create an account?",
+          "a": "No. The Hot Take requires no account, no email, and no login. Your streak and history are stored entirely in your browser. The only data that touches an external server is the text you submit for AI analysis — which is sent to the scoring API and not stored."
+        },
+        {
+          "q": "Can I delete my session history?",
+          "a": "Yes. The History screen has a 'Clear All' button that wipes your entire session log and resets your streak counter."
+        }
+      ]
+    },
+    {
+      "id": "use-cases",
+      "heading": "Who Uses The Hot Take & Why",
+      "items": [
+        {
+          "q": "Can The Hot Take help with exam preparation?",
+          "a": "Yes. The Hot Take is well-suited for students preparing for essay-based exams, case competitions, group discussions, or entrance tests that require structured argumentation under time pressure. The 5-dimension feedback directly maps to the skills examiners reward: logical structure, analytical depth, original perspective, persuasive force, and nuanced self-awareness."
+        },
+        {
+          "q": "Can The Hot Take help with writer's block?",
+          "a": "That is exactly what it was built for. The 4-second erasure rule makes it physically impossible to sit and stare at the cursor. You have to keep generating output — which means the app forces you into flow state by threat of deletion. Most users report that the block disappears entirely once the stakes are real."
+        },
+        {
+          "q": "Is The Hot Take useful for content creators?",
+          "a": "Yes. Content creators benefit from both the speed practice and the quality feedback. The Original Synthesis dimension specifically rewards unexpected angles and non-obvious perspectives — exactly what separates content that gets shared from content that gets scrolled past. The Rhetorical Power dimension scores your ability to make people feel something, not just understand something."
+        },
+        {
+          "q": "Can I use The Hot Take to practice for debates or case interviews?",
+          "a": "Yes. Hard mode is specifically designed to simulate high-pressure argumentation — you get one topic, no alternatives, and a tight clock. The AI evaluates whether your response makes an actual case or just describes a situation, which is the exact gap most debate and case interview coaches try to close."
+        },
+        {
+          "q": "How often should I use The Hot Take to see improvement?",
+          "a": "The Momentum Index starts working after 3 sessions. Most users notice measurable patterns in their dimension scores by session 5 to 7. The adaptive targeting system — where the app learns your weakest dimension and starts engineering topics around it — becomes most effective with 10 or more sessions. Daily 5-minute sessions compound faster than occasional long ones."
+        }
+      ]
+    }
+  ],
+  "schema_faq": [
+    { "q": "What is The Hot Take app?", "a": "The Hot Take is a free AI-powered timed writing app that scores your thinking across 5 cognitive dimensions. You write against a countdown clock with a 4-second erasure rule, then receive AI analysis based on frameworks including Bloom's Taxonomy, Schema Theory, and Aristotle's Rhetoric." },
+    { "q": "How does the 4-second erasure rule work?", "a": "When you start typing, a hidden 4-second timer begins. Every keystroke resets it. If you stop typing for 4 full seconds, everything you have written is permanently deleted with no undo." },
+    { "q": "What are the 5 cognitive dimensions The Hot Take scores?", "a": "Structural Clarity, Cognitive Depth, Original Synthesis, Rhetorical Power, and Metacognitive Awareness. Each dimension is rooted in an established psychology or rhetoric framework." },
+    { "q": "Is The Hot Take free?", "a": "Yes. The Hot Take is completely free with no account required." },
+    { "q": "What difficulty levels does The Hot Take offer?", "a": "Easy (3 minutes, 150 words, 4 topic choices), Medium (5 minutes, 250 words, 2 topic choices), and Hard (8 minutes, 400 words, 1 topic, no alternatives)." }
+  ]
+}

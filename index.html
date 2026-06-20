@@ -3,54 +3,126 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>THE HOT TAKE - Beat the clock. Drop your take.</title>
+
+<!-- ═══ PRIMARY SEO ═══ -->
+<title>The Hot Take — Timed AI Writing App That Scores How You Think</title>
+<meta name="description" content="Free timed writing app with AI scoring. Write against a countdown, survive the 4-second erase rule, and get scored on 5 cognitive dimensions — structure, depth, originality, rhetoric, and self-awareness. No account needed.">
+<meta name="keywords" content="timed writing app, AI writing feedback, writing under pressure, improve writing skills, cognitive writing analysis, writer's block cure, thinker archetype, writing game, free writing tool, writing practice">
+<link rel="canonical" href="https://thehottake.app/">
+
+<!-- ═══ OPEN GRAPH (Facebook / LinkedIn / WhatsApp) ═══ -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://thehottake.app/">
+<meta property="og:title" content="The Hot Take — AI Writing App That Scores How You Think">
+<meta property="og:description" content="Pick a topic. Beat the clock. Stop for 4 seconds and everything you wrote is gone. Then AI scores your thinking across 5 psychology-backed dimensions. Free, no signup.">
+<meta property="og:image" content="https://thehottake.app/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:site_name" content="The Hot Take">
+<meta property="og:locale" content="en_US">
+
+<!-- ═══ TWITTER / X CARD ═══ -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:url" content="https://thehottake.app/">
+<meta name="twitter:title" content="The Hot Take — AI Writing App That Scores How You Think">
+<meta name="twitter:description" content="Stop typing for 4 seconds and your writing disappears. Survive the clock, get AI feedback on your actual thinking quality. Free.">
+<meta name="twitter:image" content="https://thehottake.app/og-image.png">
+
+<!-- ═══ JSON-LD: WebApplication schema ═══ -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "The Hot Take",
+  "url": "https://thehottake.app/",
+  "description": "A free timed writing app that uses AI to score your thinking across 5 psychology-backed cognitive dimensions. Features a 4-second erasure mechanic, 15 topic domains, 3 difficulty levels, and a thinker archetype system.",
+  "applicationCategory": "EducationApplication",
+  "operatingSystem": "Any",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "featureList": [
+    "AI cognitive writing analysis",
+    "5-dimension scoring: Structural Clarity, Cognitive Depth, Original Synthesis, Rhetorical Power, Metacognitive Awareness",
+    "4-second erasure anti-hesitation mechanic",
+    "15 topic domains across Culture, Lifestyle, Mind, and Hustle",
+    "3 difficulty levels",
+    "Thinker archetype assignment",
+    "Session history and streak tracking",
+    "No account required"
+  ],
+  "creator": {
+    "@type": "Organization",
+    "name": "The Hot Take"
+  }
+}
+</script>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/faq.css">
 
-  <script>
-    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
-  </script>
-  <script defer src="/_vercel/insights/script.js"></script>
+<script>
+  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
 
 </head>
 <body>
 <div class="noise-overlay" aria-hidden="true"></div>
 <div id="app" class="app">
-  <header class="topbar">
-    <div class="topbar__brand">
-      <span class="topbar__mark">▮▮</span>
-      <span class="topbar__name">THE HOT TAKE</span>
-    </div>
-<nav class="topbar__nav" aria-label="Main navigation">
-      <a href="#" class="nav-link" data-screen="domain" title="Home">
-        <span class="nav-link__icon">🏠</span>
-        <span class="nav-link__label">Home</span>
-      </a>
-      <a href="#" class="nav-link" data-screen="how-to-play" title="How to Play">
-        <span class="nav-link__icon">🕹️</span>
-        <span class="nav-link__label">How to Play</span>
-      </a>
-      <a href="#" class="nav-link" data-screen="about" title="About">
-        <span class="nav-link__icon">ℹ️</span>
-        <span class="nav-link__label">About</span>
-      </a>
-      <a href="#" class="nav-link" data-screen="collection" title="Stats">
-        <span class="nav-link__icon">📊</span>
-        <span class="nav-link__label">Stats</span>
-      </a>
-      <a href="#" class="nav-link" data-screen="history" title="History">
-        <span class="nav-link__icon">📜</span>
-        <span class="nav-link__label">History
-          <span class="nav-link__badge" id="historyBadge">0</span>
-        </span>
-      </a>
-    </nav>
-    <div class="topbar__right">
-      <span class="topbar__streak" id="streakDisplay">🔥 0</span>
-    </div>
-  </header>
+
+<header class="topbar">
+  <!-- Hamburger button -->
+  <button class="hamburger" id="hamburgerBtn" aria-label="Toggle navigation" aria-expanded="false">
+    <span class="hamburger__line"></span>
+    <span class="hamburger__line"></span>
+    <span class="hamburger__line"></span>
+  </button>
+
+  <div class="topbar__brand">
+    <span class="topbar__mark">▮▮</span>
+    <span class="topbar__name">THE HOT TAKE</span>
+  </div>
+
+  <div class="topbar__right">
+    <span class="topbar__streak" id="streakDisplay">🔥 0</span>
+  </div>
+
+  <!-- Navigation – slides in from the right on mobile -->
+  <nav class="topbar__nav" id="mainNav" aria-label="Main navigation">
+    <a href="#" class="nav-link" data-screen="domain" title="Home">
+      <span class="nav-link__icon">🏠</span>
+      <span class="nav-link__label">Home</span>
+    </a>
+    <a href="#" class="nav-link" data-screen="how-to-play" title="How to Play">
+      <span class="nav-link__icon">🕹️</span>
+      <span class="nav-link__label">How to Play</span>
+    </a>
+    <a href="#" class="nav-link" data-screen="about" title="About">
+      <span class="nav-link__icon">ℹ️</span>
+      <span class="nav-link__label">About</span>
+    </a>
+    <a href="#" class="nav-link" data-screen="collection" title="Stats">
+      <span class="nav-link__icon">📊</span>
+      <span class="nav-link__label">Stats</span>
+    </a>
+    <a href="#" class="nav-link" data-screen="history" title="History">
+      <span class="nav-link__icon">📜</span>
+      <span class="nav-link__label">History
+        <span class="nav-link__badge" id="historyBadge">0</span>
+      </span>
+    </a>
+    <a href="#" class="nav-link" data-screen="faq" title="FAQ">
+      <span class="nav-link__icon">❓</span>
+      <span class="nav-link__label">FAQ</span>
+    </a>
+  </nav>
+</header>
 
   <main class="screens" id="screens">
 
@@ -760,6 +832,31 @@
       </div>
     </section>
 
+    <!-- ═══ FAQ SCREEN ═══ -->
+    <section class="screen screen--faq" data-screen="faq" aria-label="FAQ — Frequently Asked Questions">
+      <div class="screen__inner about-inner faq-inner">
+          <div class="faq-hero">
+            <span class="faq-hero__badge">❓ frequently asked</span>
+            <h1 class="faq-hero__title">
+              <span class="faq-hero__title-line">The Hot Take</span>
+              <span class="faq-hero__title-line text-grad">answered.</span>
+            </h1>
+            <p class="faq-hero__sub">
+              Everything you need to know about timed writing, AI scoring, and training your thinking –<br>
+              in plain, useful language.
+            </p>
+            <div class="faq-hero__divider"></div>
+          </div>
+        <div id="faqBody"><!-- Content will be inserted by script --></div>
+        <div class="screen-nav screen-nav--left" style="margin-top:2.5rem;">
+          <button type="button" class="ghost-btn" data-back="domain">← back to app</button>
+          <button type="button" class="cta-btn" data-back="domain">
+            <span>start writing</span><span class="cta-btn__arrow">→</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
   </main>
 </div>
 
@@ -768,5 +865,180 @@
 <script src="js/gemini.js"></script>
 <script src="js/groq.js"></script>
 <script src="js/app.js"></script>
+
+<!-- ─── FAQ loader script (fixed) ─── -->
+<script>
+  (function() {
+    "use strict";
+
+    var container = document.getElementById('faqBody');
+    if (!container) {
+      console.warn('[FAQ] Container #faqBody not found');
+      return;
+    }
+
+    // 1. Load data
+    fetch('/data/faq-data.json')
+      .then(function(res) {
+        if (!res.ok) throw new Error('Failed to load FAQ data (status ' + res.status + ')');
+        return res.json();
+      })
+      .then(function(data) {
+        var html = '';
+        (data.sections || []).forEach(function(section) {
+          var itemsHtml = '';
+          (section.items || []).forEach(function(item, idx) {
+            var itemId = 'faq-' + section.id + '-' + idx;
+            itemsHtml +=
+              '<div class="faq-item" id="' + itemId + '">' +
+                '<button class="faq-question" aria-expanded="false" aria-controls="' + itemId + '-answer" type="button">' +
+                  '<span class="faq-question__text">' + escapeHtml(item.q) + '</span>' +
+                  '<span class="faq-question__chevron" aria-hidden="true">▾</span>' +
+                '</button>' +
+                '<div class="faq-answer" id="' + itemId + '-answer" role="region" aria-hidden="true">' +
+                  '<p>' + escapeHtml(item.a) + '</p>' +
+                '</div>' +
+              '</div>';
+          });
+          html +=
+            '<div class="faq-section">' +
+              '<h2 class="faq-section__heading">' + escapeHtml(section.heading) + '</h2>' +
+              '<div class="faq-section__items">' + itemsHtml + '</div>' +
+            '</div>';
+        });
+        container.innerHTML = html;
+
+        // 2. Attach accordion using event delegation on the container
+        container.addEventListener('click', function(e) {
+          var btn = e.target.closest('.faq-question');
+          if (!btn) return;
+
+          e.preventDefault();
+
+          var isOpen = btn.getAttribute('aria-expanded') === 'true';
+          var answerId = btn.getAttribute('aria-controls');
+          var answer = document.getElementById(answerId);
+          if (!answer) return;
+
+          var section = btn.closest('.faq-section');
+          if (!section) return;
+
+          // Collapse all others in the same section
+          var allQuestions = section.querySelectorAll('.faq-question');
+          allQuestions.forEach(function(other) {
+            if (other !== btn) {
+              other.setAttribute('aria-expanded', 'false');
+              var otherId = other.getAttribute('aria-controls');
+              var otherAnswer = document.getElementById(otherId);
+              if (otherAnswer) {
+                otherAnswer.setAttribute('aria-hidden', 'true');
+                otherAnswer.style.maxHeight = null;
+              }
+              other.classList.remove('is-open');
+            }
+          });
+
+          // Toggle clicked
+          if (isOpen) {
+            btn.setAttribute('aria-expanded', 'false');
+            answer.setAttribute('aria-hidden', 'true');
+            answer.style.maxHeight = null;
+            btn.classList.remove('is-open');
+          } else {
+            btn.setAttribute('aria-expanded', 'true');
+            answer.setAttribute('aria-hidden', 'false');
+            answer.style.maxHeight = answer.scrollHeight + 'px';
+            btn.classList.add('is-open');
+          }
+        });
+
+        console.log('[FAQ] Loaded and accordion ready.');
+      })
+      .catch(function(err) {
+        console.error('[FAQ] Load error:', err);
+        container.innerHTML = '<p class="lede" style="text-align:center;color:var(--danger);">Could not load FAQ. Please refresh.</p>';
+      });
+
+    function escapeHtml(str) {
+      var div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+  })();
+</script>
+
+<!-- ─── Hamburger toggle (place right before </body>) ─── -->
+<script>
+  (function() {
+    "use strict";
+    function init() {
+      const hamburger = document.getElementById('hamburgerBtn');
+      const nav = document.getElementById('mainNav');
+      if (!hamburger || !nav) return;
+
+      // Create overlay if missing
+      let overlay = document.querySelector('.nav-overlay');
+      if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.className = 'nav-overlay';
+        
+        // Attach the overlay to the .app container so it shares the same stacking context as the menu
+        const appContainer = document.getElementById('app');
+        if (appContainer) {
+            appContainer.appendChild(overlay);
+        } else {
+            document.body.appendChild(overlay); // Fallback just in case
+        }
+      }
+
+      function toggleMenu(force) {
+        const isOpen = (force !== undefined) ? force : !nav.classList.contains('is-open');
+        nav.classList.toggle('is-open', isOpen);
+        hamburger.classList.toggle('is-open', isOpen);
+        overlay.classList.toggle('is-open', isOpen);
+        document.body.classList.toggle('nav-open', isOpen);
+        hamburger.setAttribute('aria-expanded', isOpen);
+      }
+
+      hamburger.addEventListener('click', function(e) {
+        e.stopPropagation();
+        toggleMenu();
+      });
+
+      overlay.addEventListener('click', function() {
+        toggleMenu(false);
+      });
+
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && nav.classList.contains('is-open')) {
+          toggleMenu(false);
+        }
+      });
+
+      nav.addEventListener('click', function(e) {
+        if (e.target.closest('.nav-link') && window.innerWidth <= 820) {
+          toggleMenu(false);
+        }
+      });
+
+      let timer;
+      window.addEventListener('resize', function() {
+        clearTimeout(timer);
+        timer = setTimeout(function() {
+          if (window.innerWidth > 820 && nav.classList.contains('is-open')) {
+            toggleMenu(false);
+          }
+        }, 200);
+      });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  })();
+</script>
+
 </body>
 </html>
