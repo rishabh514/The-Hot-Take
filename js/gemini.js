@@ -148,24 +148,24 @@ const DIMENSION_TARGETING = {
    ============================================================ */
 const CLUSTER_VOICE = {
   culture: {
-    tone: "irreverent, chronically online, aware of irony",
-    avoid: "academic analysis, explaining context most Gen-Z already knows",
-    favor: "takes that would start arguments in a Discord server, topics where the 'wrong' answer is more interesting than the 'right' one"
+    tone: "irreverent, chronically online, aware of irony — think someone who grew up on Instagram Reels and Twitter/X doomscrolling",
+    avoid: "Western-only references, explaining context most Indian Gen-Z already knows, overly academic framing",
+    favor: "takes that would blow up in a college WhatsApp group or get ratio'd on Twitter India, desi internet culture, Bollywood vs. Hollywood tension, the specific chaos of being online in India right now"
   },
   lifestyle: {
-    tone: "personal, grounded, experiential — like a smart friend with actual opinions",
-    avoid: "self-help speak, vague wellness language, generic travel writing clichés",
-    favor: "topics tied to real lived decisions, stuff that reveals something true about how people actually live vs. how they say they do"
+    tone: "personal, grounded, experiential — like a smart friend at a Delhi café who actually has opinions",
+    avoid: "self-help speak, vague wellness language, generic backpacker travel clichés written for a Western audience",
+    favor: "topics rooted in the Indian middle-class experience — the pressure of family expectations, food nostalgia tied to specific cities or festivals, the gap between how people live and what they post, travel that includes Goa, Himachal, or Southeast Asia on a budget"
   },
   mind: {
-    tone: "honest, a little uncomfortable, psychologically sharp",
-    avoid: "TED talk framing, therapy speak, anything that would fit on an Instagram infographic",
-    favor: "topics that make the writer examine something they'd rather not, ideas with a genuinely disturbing or counterintuitive core"
+    tone: "honest, a little uncomfortable, psychologically sharp — aware of the specific Indian context of mental health stigma and hustle pressure",
+    avoid: "TED talk framing, therapy speak borrowed wholesale from American self-help, anything that ignores the desi family/society dynamic",
+    favor: "topics that name the specific pressures Indian young adults face — parental approval, arranged marriage vs. love marriage, log kya kahenge, FOMO in a country where comparison is inescapable"
   },
   hustle: {
-    tone: "skeptical of hype, builder-brained, economically literate",
-    avoid: "guru language, broad platitudes about 'the future of work'",
-    favor: "topics grounded in a specific mechanism, decision, or tradeoff — not 'is AI good?' but 'what does a world with 10x cheaper labor actually mean for how you price your time?'"
+    tone: "skeptical of hype, builder-brained, aware of both the startup ecosystem and the IIT/IIM pipeline pressure",
+    avoid: "Silicon Valley guru language, advice that assumes the writer is in the US, broad platitudes about 'the future of work'",
+    favor: "topics grounded in the Indian hustle reality — Tier 1 vs Tier 2 city ambition gaps, the startup vs. corporate job debate, whether the MBA is still worth it, the specific economics of building for Bharat vs. building for metros"
   }
 };
 
@@ -208,11 +208,6 @@ const DIFFICULTY_CONFIG = {
   }
 };
 
-/* ============================================================
-   TOPIC PROMPT BUILDER
-   The actual prompt sent to the model.
-   Designed to produce topics that feel authored, not generated.
-   ============================================================ */
 function buildTopicPrompt(domain, difficulty, durationMinutes, wordGoal, targetDimension) {
   const cfg = DIFFICULTY_CONFIG[difficulty];
   const voice = CLUSTER_VOICE[domain.cluster] || CLUSTER_VOICE.culture;
@@ -256,21 +251,54 @@ ${targetingBlock}
 ━━━ DIFFICULTY MANDATE ━━━
 ${cfg.complexityNote}
 
+━━━ AUDIENCE CONTEXT ━━━
+Primary audience: Indian Gen-Z and young millennials (18–28). Metro and Tier-1 cities primarily, but aspirationally aware of Tier-2 reality. English-comfortable but code-switches naturally. Heavily online across Instagram, YouTube, Twitter/X, and Reddit India.
+
+WHAT "RELEVANT" MEANS FOR THIS AUDIENCE:
+This is not a generic "Indian youth" audience. These are people who simultaneously:
+- Follow IPL and also watch Premier League
+- Watch Bollywood AND Hollywood AND anime AND Korean dramas
+- Complain about UPSC pressure and also debate which startup to join
+- Know what "bhai seedha point pe aa" means AND get the reference when someone quotes The Office
+- Are deeply aware of the India-specific version of every global trend: not just "hustle culture" but "IIT grind culture"; not just "therapy" but "ek baar psychiatrist ke paas gaya toh society kya bolegi"
+
+REFERENCE FILTER — use this to decide if a reference belongs:
+✓ Include: things that have been memed, debated, or gone viral specifically within Indian internet culture — whether that originated in India or was adapted from global content
+✓ Include: experiences tied to the Indian urban young adult life arc — board exams, JEE/NEET pressure, college fests, internship grind, family dinner arguments, shaadi season stress, moving to a new city for work
+✓ Include: global trends that have a distinct Indian flavor or caused specific Indian discourse (e.g. a global AI tool that became a UPSC debate, a Netflix show that caused a desi Twitter war, a fitness trend that got localized)
+✗ Exclude: references that only landed in the US/UK and never generated Indian discourse
+✗ Exclude: hyper-niche subcultures that even chronically online Indian Gen-Z wouldn't recognize
+
+TOPIC FRAMING PRINCIPLE:
+When a topic could be framed generically global OR with a specific Indian tension — always pick the Indian tension. "Is hustle culture toxic?" is a generic topic. "Is the IIT-to-startup pipeline just a more socially acceptable version of the same pressure we were supposed to escape?" is a Hot Take topic for this audience.
+
+The best topics will make someone think: "yaar this is literally my life / my college / my WhatsApp group" — even if the domain is gaming, fashion, or philosophy.
+
 ━━━ WHAT MAKES A GREAT TOPIC ━━━
 A great Hot Take topic has three qualities:
-1. SPECIFICITY — vague topics produce vague writing. "Social media is bad" is not a topic. "Why Instagram's algorithm actively rewards emotional dysregulation — and why we keep using it anyway" is a topic.
-2. TENSION — there should be a real argument lurking inside it. Something to push against, a position to defend, a counterintuitive claim to make.
-3. PERSONAL ENTRY POINT — the writer should feel a flicker of "oh I actually have something to say about this" in the first 5 seconds. Even the hard topics should feel personally relevant.
+
+1. SPECIFICITY — vague topics produce vague writing.
+   Bad: "Social media is bad"
+   Bad: "India has a mental health problem"
+   Good: "Why Instagram's algorithm rewards emotional dysregulation — and why we keep using it anyway"
+   Good: "Why Indian parents calling therapy 'timepass' isn't ignorance — it's a survival strategy that worked for them"
+
+2. TENSION — there should be a real argument lurking inside it. Something to push against, a position to defend, a counterintuitive claim. The topic should make it possible to write a genuinely wrong answer, not just a weak one.
+
+3. PERSONAL ENTRY POINT — the writer should feel "yaar I actually have something to say about this" within 5 seconds. The topic doesn't need to be autobiographical, but it must feel like it lives in their world, not a textbook.
 
 ━━━ DIRECTION WRITING RULES ━━━
 The direction (2-3 sentences) is a creative brief, not a constraint. It should:
-- Open up the topic, not narrow it
-- Name the specific angle or tension worth pursuing
-- Optionally: hint at what a surprising or great response might include — without writing it
-- Sound like a smart editor is handing you a brief, not a teacher giving instructions
+- Open up the topic, not narrow it — give the writer a lens, not a script
+- Name the specific tension or angle worth pursuing
+- Optionally hint at what a surprising or honest response might explore — without writing it for them
+- Sound like a sharp editor handing you a brief at 11pm, not a professor writing an exam question
+- Never use phrases like "consider how...", "reflect on...", "think about..." — those are academic. Use: "The real argument here is...", "Most people will say X — the interesting take is...", "Don't just describe it — pick a side."
 
 ━━━ FORMAT RULES ━━━
-- Title: under 12 words. No "Write about...", no "Explore...", no "Discuss..." — use active verbs: "Defend", "Explain why", "Make the case that", "Argue whether", "Describe the world where", "Design", "Rank", "Break down"
+- Title: under 12 words. Punchy, specific, opinionated.
+- Lead with active verbs: "Defend", "Explain why", "Make the case that", "Argue whether", "Describe the world where", "Rank", "Break down", "Diagnose"
+- No "Write about...", "Explore...", "Discuss...", "Examine..."
 - No emoji in titles or directions
 - No quotation marks around titles
 - No hashtags
