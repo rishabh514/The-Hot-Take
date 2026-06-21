@@ -1,9 +1,10 @@
 /* ============================================================
-   THE HOT TAKE - Gemini API wrapper
-   Gemini 3.1 Flash Lite - Topic generation ONLY.
+   THE HOT TAKE - Gemini API wrapper v2
+   Gemini Flash Lite → Topic generation ONLY.
+   Falls back to Groq llama-3.3-70b if Gemini fails.
    ============================================================ */
 
-const GEMINI_MODEL = "gemini-3.1-flash-lite";
+const GEMINI_MODEL = "gemini-2.0-flash-lite";
 
 class GeminiError extends Error {
   constructor(message, code) {
@@ -14,7 +15,6 @@ class GeminiError extends Error {
 }
 
 async function callGemini(prompt, { temperature = 0.7, maxOutputTokens = 400, json = false } = {}) {
-  // Routes to the secure Vercel API endpoint
   const url = '/api/gemini';
 
   const body = {
@@ -34,7 +34,7 @@ async function callGemini(prompt, { temperature = 0.7, maxOutputTokens = 400, js
       body: JSON.stringify(body)
     });
   } catch (networkErr) {
-    throw new GeminiError("Network error reaching the server. Check your connection.", "network");
+    throw new GeminiError("Network error reaching the server.", "network");
   }
 
   if (!response.ok) {
@@ -45,13 +45,13 @@ async function callGemini(prompt, { temperature = 0.7, maxOutputTokens = 400, js
     } catch (_) {}
 
     if (response.status === 400 && /API key/i.test(detail)) {
-      throw new GeminiError("Server API key looks invalid. Check Vercel Environment Variables.", "bad-key");
+      throw new GeminiError("Server API key looks invalid.", "bad-key");
     }
     if (response.status === 403) {
-      throw new GeminiError("Key rejected (403). It may lack Gemini API access.", "forbidden");
+      throw new GeminiError("Key rejected (403).", "forbidden");
     }
     if (response.status === 429) {
-      throw new GeminiError("Rate limited by Gemini. Wait a few seconds and retry.", "rate-limit");
+      throw new GeminiError("Rate limited by Gemini.", "rate-limit");
     }
     throw new GeminiError(detail || `Gemini request failed (${response.status}).`, "http-" + response.status);
   }
@@ -69,7 +69,7 @@ async function callGemini(prompt, { temperature = 0.7, maxOutputTokens = 400, js
 
   if (!text) {
     if (finishReason === "SAFETY") {
-      throw new GeminiError("Gemini blocked this for safety reasons. Try a different lane.", "safety");
+      throw new GeminiError("Gemini blocked this for safety reasons.", "safety");
     }
     throw new GeminiError("Gemini returned an empty response.", "empty");
   }
@@ -77,157 +77,280 @@ async function callGemini(prompt, { temperature = 0.7, maxOutputTokens = 400, js
   return text.trim();
 }
 
-/* ---------- Topic generation ---------- */
+/* ============================================================
+   GROQ FALLBACK - called when Gemini fails
+   Uses llama-3.3-70b via /api/groq endpoint
+   ============================================================ */
 
-// Maps a dimension key (from app.js DIMENSIONS) to writing-craft instructions
-// that, if followed, would specifically exercise that dimension. This is what
-// makes topic generation archetype-aware instead of purely random.
+async function callGroqFallback(prompt, { temperature = 0.7, maxOutputTokens = 600 } = {}) {
+  const body = {
+    model: "llama-3.3-70b-versatile",
+    messages: [{ role: "user", content: prompt }],
+    temperature,
+    max_tokens: maxOutputTokens,
+    response_format: { type: "json_object" }
+  };
+
+  let response;
+  try {
+    response = await fetch('/api/groq', {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
+  } catch (networkErr) {
+    throw new GeminiError("Fallback network error.", "network");
+  }
+
+  if (!response.ok) {
+    throw new GeminiError(`Groq fallback failed (${response.status}).`, "fallback-fail");
+  }
+
+  const data = await response.json();
+  const text = data?.choices?.[0]?.message?.content || "";
+  if (!text) throw new GeminiError("Groq fallback returned empty response.", "empty");
+  return text.trim();
+}
+
+/* ============================================================
+   DIMENSION TARGETING
+   Maps each weak dimension to a craft-level instruction
+   that exercises it through the topic itself — not as a
+   label, but as a structural demand baked into the prompt.
+   ============================================================ */
 const DIMENSION_TARGETING = {
   structural_clarity: {
     label: "Structural Clarity",
-    instruction: "The topic should reward a writer who can organize a complex idea into a clean, logical sequence. Favor topics that naturally have multiple moving parts (causes, stages, categories, before/after) so structure becomes unavoidable to do well."
+    instruction: `Design a topic that has genuine internal complexity — multiple stages, causes, or tensions that can't be resolved in a single paragraph. The writer who succeeds will need to make deliberate choices about sequencing and reader orientation. Avoid topics with a single linear answer. Favor topics where the *order* in which ideas are presented actually changes the argument.`
   },
   cognitive_depth: {
     label: "Cognitive Depth",
-    instruction: "The topic should be impossible to answer well with surface-level description. It must require the writer to analyze, compare, or evaluate - not just describe. Avoid topics with one obvious surface-level answer."
+    instruction: `Design a topic that rewards analysis over observation. It should be impossible to write well about by just describing what exists — the writer has to compare, weigh tradeoffs, or challenge an assumption. Avoid topics where the surface-level observation is also the insight. The best response should make the reader think "I wouldn't have seen it that way."`
   },
   original_synthesis: {
     label: "Original Synthesis",
-    instruction: "The topic should reward unexpected connections - ideally pulling together two things that don't obviously belong together, or asking for a genuinely novel angle on something familiar. Avoid the most predictable take being the only one available."
+    instruction: `Design a topic that rewards unexpected connections between two things that don't obviously belong in the same sentence. Or, take a familiar subject and find the sharpest possible non-default angle on it — one where the obvious take is actively boring. The writer who plays it safe should feel like they wasted the topic. Surprise is the goal.`
   },
   rhetorical_power: {
     label: "Rhetorical Power",
-    instruction: "The topic must require the writer to persuade, not just inform. Frame it as a position to defend, a case to make, or a claim to argue for against an implied skeptic. The writer should have to convince someone, not just explain something."
+    instruction: `Design a topic that's inherently a position to defend, not an idea to explain. Frame it so there's a clear implied skeptic in the room — someone the writer has to convince, not just inform. The stakes should feel real. Neutral, both-sides topics actively undermine this. Pick something where one side of the argument actually matters more.`
   },
   metacognitive_awareness: {
     label: "Metacognitive Awareness",
-    instruction: "The topic should invite the writer to examine their own certainty - ideas where reasonable people could land in different places, or where the writer has to acknowledge the limits or tradeoffs of their own claim. Avoid topics with a single 'correct' answer."
+    instruction: `Design a topic where the honest answer is not simple — where a thoughtful writer would need to acknowledge their own uncertainty, name a tradeoff they can't resolve, or qualify a claim they'd otherwise make confidently. Avoid topics with clear correct answers. The best response should feel intellectually honest, not just smart.`
   }
 };
 
-function buildTopicPrompt(domain, difficulty, durationMinutes, wordGoal, targetDimension) {
-  // Determine the number of topics to generate and the complexity based on difficulty
-  let topicCount, complexityNote, instructionText, jsonFormatExample;
-
-  if (difficulty === "easy") {
-    topicCount = 4;
-    complexityNote = "Make the topics concrete, relatable, and easy to dive into. Avoid abstract or multi-layered ideas.";
-    instructionText = `Generate EXACTLY ${topicCount} distinct writing topics, all within the domain. Each topic must be specific enough that two different writers would produce different pieces.`;
-    jsonFormatExample = `{
-  "topics": [
-    {"title": "topic 1", "direction": "2-3 sentence writing direction"},
-    {"title": "topic 2", "direction": "2-3 sentence writing direction"},
-    {"title": "topic 3", "direction": "2-3 sentence writing direction"},
-    {"title": "topic 4", "direction": "2-3 sentence writing direction"}
-  ]
-}`;
-  } else if (difficulty === "medium") {
-    topicCount = 2;
-    complexityNote = "Make the topics thought-provoking with a moderate level of abstraction. They should challenge the writer but remain accessible.";
-    instructionText = `Generate EXACTLY ${topicCount} distinct writing topics, all within the domain. The two topics should be meaningfully different in angle and approach.`;
-    jsonFormatExample = `{
-  "topics": [
-    {"title": "topic 1", "direction": "2-3 sentence writing direction"},
-    {"title": "topic 2", "direction": "2-3 sentence writing direction"}
-  ]
-}`;
-  } else { // hard
-    topicCount = 1;
-    complexityNote = "Make the topic complex, unexpected, or multi-faceted. It should force the writer to think deeply and make connections. Surprise them with an angle that isn't obvious.";
-    instructionText = `Generate ONE single writing topic that can come from ANY domain or a surprising mashup of two domains. Make it specific, weird, sharp, or oddly niche - something that forces the writer to think on their feet.`;
-    jsonFormatExample = `{"title": "short punchy topic title", "direction": "2-3 sentence writing direction that guides the writer"}`;
+/* ============================================================
+   DOMAIN PERSONALITY VOICE LAYER
+   Each cluster gets a distinct editorial voice so topics
+   don't sound interchangeable across very different domains.
+   ============================================================ */
+const CLUSTER_VOICE = {
+  culture: {
+    tone: "irreverent, chronically online, aware of irony",
+    avoid: "academic analysis, explaining context most Gen-Z already knows",
+    favor: "takes that would start arguments in a Discord server, topics where the 'wrong' answer is more interesting than the 'right' one"
+  },
+  lifestyle: {
+    tone: "personal, grounded, experiential — like a smart friend with actual opinions",
+    avoid: "self-help speak, vague wellness language, generic travel writing clichés",
+    favor: "topics tied to real lived decisions, stuff that reveals something true about how people actually live vs. how they say they do"
+  },
+  mind: {
+    tone: "honest, a little uncomfortable, psychologically sharp",
+    avoid: "TED talk framing, therapy speak, anything that would fit on an Instagram infographic",
+    favor: "topics that make the writer examine something they'd rather not, ideas with a genuinely disturbing or counterintuitive core"
+  },
+  hustle: {
+    tone: "skeptical of hype, builder-brained, economically literate",
+    avoid: "guru language, broad platitudes about 'the future of work'",
+    favor: "topics grounded in a specific mechanism, decision, or tradeoff — not 'is AI good?' but 'what does a world with 10x cheaper labor actually mean for how you price your time?'"
   }
+};
+
+/* ============================================================
+   DIFFICULTY CONFIGURATIONS
+   Each level changes: count, framing, complexity, selection mechanic
+   ============================================================ */
+const DIFFICULTY_CONFIG = {
+  easy: {
+    count: 4,
+    selectionNote: "Writer picks one of four. These are their runway — accessible enough to start immediately, specific enough to generate distinct pieces.",
+    complexityNote: `Make each topic entry-level for the domain — concrete, single-layered, and fast to form an opinion on. A writer who's never thought about this before should feel ready to type in ten seconds. Think: one clear angle, no required background knowledge, immediate personal relevance.`,
+    tokenBudget: 500,
+    temp: 0.75,
+    jsonShape: `{"topics": [
+  {"title": "...", "direction": "..."},
+  {"title": "...", "direction": "..."},
+  {"title": "...", "direction": "..."},
+  {"title": "...", "direction": "..."}
+]}`
+  },
+  medium: {
+    count: 2,
+    selectionNote: "Writer picks one of two — a real choice, not just random selection. The two topics should represent meaningfully different creative directions.",
+    complexityNote: `Both topics should require genuine thought — not just "what do I think?" but "what's the most defensible or interesting position?" They can involve tradeoffs, comparisons, or require the writer to take a non-obvious stance. One topic should feel familiar-but-twisted; the other should feel unexpected. Neither should be answerable with a single observation.`,
+    tokenBudget: 650,
+    temp: 0.9,
+    jsonShape: `{"topics": [
+  {"title": "...", "direction": "..."},
+  {"title": "...", "direction": "..."}
+]}`
+  },
+  hard: {
+    count: 1,
+    selectionNote: "One topic. No alternatives. The writer gets what they get.",
+    complexityNote: `This is the hardest topic a writer in this domain could face. It should be multi-layered, surprising, and actively resist the obvious answer. Bonus points if the topic could exist at the intersection of this domain and another unexpected field. The direction should open doors the writer didn't know existed, not point them down a corridor. A great hard topic makes the writer think: "I don't know where to start — but I really want to figure it out."`,
+    tokenBudget: 280,
+    temp: 1.05,
+    jsonShape: `{"title": "...", "direction": "..."}`
+  }
+};
+
+/* ============================================================
+   TOPIC PROMPT BUILDER
+   The actual prompt sent to the model.
+   Designed to produce topics that feel authored, not generated.
+   ============================================================ */
+function buildTopicPrompt(domain, difficulty, durationMinutes, wordGoal, targetDimension) {
+  const cfg = DIFFICULTY_CONFIG[difficulty];
+  const voice = CLUSTER_VOICE[domain.cluster] || CLUSTER_VOICE.culture;
 
   // --- Archetype-aware targeting block ---
   let targetingBlock = "";
   if (targetDimension && DIMENSION_TARGETING[targetDimension.key]) {
     const t = DIMENSION_TARGETING[targetDimension.key];
     targetingBlock = `
-TARGETED CALIBRATION (important):
-This writer's recent sessions show their weakest dimension is "${t.label}" (averaging ${targetDimension.avgScore}/100 over their last several rounds).
+── CALIBRATION LAYER (invisible to the writer) ──
+This writer's weakest dimension is "${t.label}" (avg ${targetDimension.avgScore}/100 over recent sessions).
+Without mentioning it in the topic text, engineer the topic so that ${t.label.toLowerCase()} is what separates a good response from a great one:
 ${t.instruction}
-Do NOT mention this calibration in the topic or direction text itself - the writer should experience it as a natural topic, not a training exercise. Just make sure the topic genuinely makes that dimension matter.
+The writer should experience this as a natural, interesting topic — not a remedial exercise.
+─────────────────────────────────────────────────
 `;
   }
 
-  return `You are a creative director for "The Hot Take," a high-pressure writing app for Gen-Z users.
+  // Hard difficulty can roam across all domains — special instruction
+  const domainInstruction = difficulty === "hard"
+    ? `The topic can come from ${domain.name}, from a completely different domain, or from a surprising collision between the two. Cross-domain surprises are especially welcome here.`
+    : `The topic must be unmistakably within ${domain.name}. Someone who reads it with no context should immediately know which domain they're in.`;
 
+  return `You are the creative director of "The Hot Take" — a timed writing app built for Gen-Z writers who want to be challenged, not coddled. Your job is to generate writing topics that feel genuinely authored: specific, opinionated, and impossible to write badly about in an interesting way.
+
+━━━ SESSION CONTEXT ━━━
 Domain: ${domain.name}
-What this domain covers: ${domain.blurb}
+This domain covers: ${domain.blurb}
 Difficulty: ${difficulty.toUpperCase()}
-Writer has: ${durationMinutes} minutes, must hit at least ${wordGoal} words.
+Time limit: ${durationMinutes} min | Word target: ${wordGoal}+ words
+Topic count: ${cfg.count} (${cfg.selectionNote})
 
-YOUR TASK:
-${instructionText}
+━━━ DOMAIN VOICE ━━━
+Tone: ${voice.tone}
+Avoid: ${voice.avoid}
+Favor: ${voice.favor}
 
-${complexityNote}
+━━━ DOMAIN SCOPE ━━━
+${domainInstruction}
 ${targetingBlock}
-CRITICAL FORMAT RULES:
-- Each topic must have TWO parts: a short punchy TITLE (under 15 words) and a DIRECTION (2-3 sentences that guide the writer on what angle to take, what to include, and what makes this interesting - without writing the piece for them).
-- The direction should spark ideas, not constrain them. It's a launchpad, not a cage.
-- NO emoji, NO hashtags, NO quotation marks around the title.
-- Be domain-specific - a Gaming topic should feel unmistakably about gaming culture, not generic creativity.
-- Avoid: "Write about...", "Discuss...", "Explore..." - use active, provocative framing instead: "Defend...", "Explain why...", "Design...", "Make the case that...", "Argue whether...", "Describe the world where..."
+━━━ DIFFICULTY MANDATE ━━━
+${cfg.complexityNote}
 
-Return ONLY valid JSON, no markdown fences, in this EXACT shape:
-${jsonFormatExample}`;
+━━━ WHAT MAKES A GREAT TOPIC ━━━
+A great Hot Take topic has three qualities:
+1. SPECIFICITY — vague topics produce vague writing. "Social media is bad" is not a topic. "Why Instagram's algorithm actively rewards emotional dysregulation — and why we keep using it anyway" is a topic.
+2. TENSION — there should be a real argument lurking inside it. Something to push against, a position to defend, a counterintuitive claim to make.
+3. PERSONAL ENTRY POINT — the writer should feel a flicker of "oh I actually have something to say about this" in the first 5 seconds. Even the hard topics should feel personally relevant.
+
+━━━ DIRECTION WRITING RULES ━━━
+The direction (2-3 sentences) is a creative brief, not a constraint. It should:
+- Open up the topic, not narrow it
+- Name the specific angle or tension worth pursuing
+- Optionally: hint at what a surprising or great response might include — without writing it
+- Sound like a smart editor is handing you a brief, not a teacher giving instructions
+
+━━━ FORMAT RULES ━━━
+- Title: under 12 words. No "Write about...", no "Explore...", no "Discuss..." — use active verbs: "Defend", "Explain why", "Make the case that", "Argue whether", "Describe the world where", "Design", "Rank", "Break down"
+- No emoji in titles or directions
+- No quotation marks around titles
+- No hashtags
+- Return ONLY valid JSON, no markdown fences:
+${cfg.jsonShape}`;
 }
 
-async function generateTopic(domain, difficulty, durationMinutes, wordGoal, targetDimension) {
-  const temp = difficulty === "easy" ? 0.75 : difficulty === "medium" ? 0.9 : 1.0;
-  const maxTokens = difficulty === "medium" ? 600 : difficulty === "easy" ? 500 : 250;
-  const prompt = buildTopicPrompt(domain, difficulty, durationMinutes, wordGoal, targetDimension);
-
-  const raw = await callGemini(prompt, {
-    temperature: temp,
-    maxOutputTokens: maxTokens,
-    json: true
-  });
-
-  // --- Robust JSON extraction ---
+/* ============================================================
+   PARSE TOPIC RESPONSE
+   Shared logic for both Gemini and fallback paths
+   ============================================================ */
+function parseTopicResponse(raw, difficulty) {
   let jsonString = raw;
 
-  // 1. Remove markdown code fences
   const fenceMatch = raw.match(/[`]{3}(?:json)?\s*([\s\S]*?)[`]{3}/);
   if (fenceMatch) {
     jsonString = fenceMatch[1].trim();
   } else {
-    // 2. Try to extract the first JSON object
     const jsonMatch = raw.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      jsonString = jsonMatch[0];
-    }
+    if (jsonMatch) jsonString = jsonMatch[0];
   }
 
   let parsed;
   try {
     parsed = JSON.parse(jsonString);
   } catch (_) {
-    // 3. Last resort: try to parse raw directly
     try {
       parsed = JSON.parse(raw);
     } catch (__) {
-      console.error("Gemini raw response:", raw);
-      throw new GeminiError("Couldn't parse the topic Gemini sent back. The response was not valid JSON. Retrying may help.", "parse");
+      console.error("Raw response (parse failed):", raw);
+      throw new GeminiError("Couldn't parse the topic response as JSON. Retrying may help.", "parse");
     }
   }
 
-  // Determine the expected response shape based on difficulty
   if (difficulty === "easy" || difficulty === "medium") {
-    // Expect an array of topics
     const topics = Array.isArray(parsed.topics)
       ? parsed.topics.filter(t => t && t.title && t.direction)
       : [];
     const expected = difficulty === "easy" ? 4 : 2;
     if (topics.length < expected) {
-      throw new GeminiError(`Gemini returned only ${topics.length} topics, expected ${expected}. Retrying may help.`, "empty");
+      throw new GeminiError(`Only ${topics.length} valid topics returned, expected ${expected}. Retrying may help.`, "empty");
     }
     return { type: "choice", topics };
   } else {
-    // hard: expect a single topic
     if (!parsed.title || !parsed.direction) {
-      throw new GeminiError("Gemini returned an incomplete topic. Retrying may help.", "empty");
+      throw new GeminiError("Incomplete topic returned. Retrying may help.", "empty");
     }
     return { type: "single", topic: parsed.title, direction: parsed.direction };
+  }
+}
+
+/* ============================================================
+   MAIN EXPORT — generateTopic
+   Tries Gemini first, falls back to Groq 70b on any failure
+   ============================================================ */
+async function generateTopic(domain, difficulty, durationMinutes, wordGoal, targetDimension) {
+  const cfg = DIFFICULTY_CONFIG[difficulty];
+  const prompt = buildTopicPrompt(domain, difficulty, durationMinutes, wordGoal, targetDimension);
+
+  // ── Attempt 1: Gemini ──
+  try {
+    const raw = await callGemini(prompt, {
+      temperature: cfg.temp,
+      maxOutputTokens: cfg.tokenBudget,
+      json: true
+    });
+    return parseTopicResponse(raw, difficulty);
+  } catch (geminiErr) {
+    console.warn(`[generateTopic] Gemini failed (${geminiErr.code}): ${geminiErr.message}. Falling back to Groq 70b.`);
+  }
+
+  // ── Attempt 2: Groq 70b fallback ──
+  try {
+    const raw = await callGroqFallback(prompt, {
+      temperature: Math.min(cfg.temp, 1.0), // Groq doesn't support >1.0
+      maxOutputTokens: cfg.tokenBudget
+    });
+    return parseTopicResponse(raw, difficulty);
+  } catch (groqErr) {
+    console.error(`[generateTopic] Groq fallback also failed: ${groqErr.message}`);
+    throw new GeminiError("Both topic generators are down. Please try again in a moment.", "all-failed");
   }
 }

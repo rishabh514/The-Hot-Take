@@ -1,8 +1,8 @@
 /* ============================================================
-   THE HOT TAKE - Groq API wrapper v5
+   THE HOT TAKE - Groq API wrapper v6
    Model selection:
      - llama-3.3-70b-versatile → deep analysis (best quality)
-     - meta-llama/llama-4-scout-17b-16e-instruct → fast/cheap tasks
+     - meta-llama/llama-4-scout-17b-16e-instruct → fast tasks
    ============================================================ */
 
 const GROQ_MODEL_ANALYSIS = "llama-3.3-70b-versatile";
@@ -29,12 +29,9 @@ async function callGroq(prompt, { model = GROQ_MODEL_ANALYSIS, temperature = 0.3
 
   let response;
   try {
-    // Routes to the secure Vercel API without exposing Authorization headers
     response = await fetch('/api/groq', {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body)
     });
   } catch (networkErr) {
@@ -68,111 +65,179 @@ async function callGroq(prompt, { model = GROQ_MODEL_ANALYSIS, temperature = 0.3
 }
 
 /* ============================================================
-   ANALYSIS PROMPT - Psychology-backed, text-referencing,
-   deeply actionable, dimension-complete
+   ANALYSIS PROMPT v2
+   
+   Core philosophy:
+   - Every feedback statement MUST anchor to exact text
+   - Archetype assignment is earned through score pattern, not vibes
+   - Fix suggestions are rewrites of actual phrases, not abstract advice
+   - Overall feedback density scaled to word count (no padding for short pieces)
+   - Calibration is tight: 80+ is rare, 60–79 is real accomplishment
    ============================================================ */
 
+// Per-dimension scoring anchors — these live in the prompt to prevent score inflation
+const DIMENSION_ANCHORS = {
+  structural_clarity: `
+    - 85–100: Reader can navigate the piece without rereading. Transitions earn their place. The structure itself is an argument.
+    - 65–84: Clear intent, some organizational payoff, but one section probably loses the thread.
+    - 45–64: Ideas present but order feels accidental. Paragraphs don't build on each other.
+    - 25–44: Starts somewhere, ends somewhere else, no intentional path between.
+    - 0–24: Stream-of-consciousness or abandoned mid-thought.`,
+  cognitive_depth: `
+    - 85–100: Writer moves between description, analysis, and evaluation. Claims are earned, not assumed. Reader learns something.
+    - 65–84: Real thinking visible — at least one moment where the writer surprised themselves.
+    - 45–64: Mostly observation. Ideas are present but not developed. "X is bad because X is bad."
+    - 25–44: Surface-level throughout. Could have been written without thinking about the topic first.
+    - 0–24: Filler, restatements, or purely reactive writing.`,
+  original_synthesis: `
+    - 85–100: At least one connection or angle the reader genuinely wouldn't have predicted. Personal voice is unmistakable.
+    - 65–84: A non-default take somewhere in the piece. More than one way to write it.
+    - 45–64: Competent but predictable. The "obvious" take, executed adequately.
+    - 25–44: Generic framing, familiar examples, no distinguishing moves.
+    - 0–24: Could have been written by anyone about anything.`,
+  rhetorical_power: `
+    - 85–100: Persuasive. Creates stakes. The reader cares about the outcome before they reach the end.
+    - 65–84: Committed to a position, some emotional or logical force. Mostly convincing.
+    - 45–64: Has a position but doesn't really fight for it. Informative rather than persuasive.
+    - 25–44: Position unclear or abandoned. Hedged into incoherence.
+    - 0–24: No discernible argument. Reader doesn't know what to think when done.`,
+  metacognitive_awareness: `
+    - 85–100: Writer knows what they're claiming and why. Acknowledges limits. Earns confidence where they have it.
+    - 65–84: Self-awareness visible — at least one moment of productive uncertainty or honest qualification.
+    - 45–64: Overconfident or underconfident. Either "I'm right because" or "maybe, possibly, I don't know."
+    - 25–44: No indication writer has thought about *how* they're thinking, just *what* they're thinking.
+    - 0–24: Disconnected from own claims.`
+};
+
 function buildAnalysisPrompt(userText, domainName, topic, topicDirection, isFreeWrite) {
-  let context = `Domain: ${domainName}\n`;
+  const wordCount = userText.trim().split(/\s+/).filter(Boolean).length;
+  
+  // Scale feedback density to word count
+  const isShortPiece = wordCount < 80;
+  const quoteLengthGuidance = isShortPiece
+    ? "For short pieces: quotes may be whole sentences since the text is brief. Don't over-fragment."
+    : "Pull specific phrases (5-20 words), not full paragraphs. Be surgical.";
+
+  let context;
   if (isFreeWrite) {
-    context += `The user chose free writing. No topic was assigned. Infer their intent from the text.\n`;
+    context = `Mode: Free Write (no assigned topic — infer intent from the text itself)`;
   } else {
-    context += `Assigned topic: "${topic}"\nTopic direction: "${topicDirection || 'none'}"\n`;
+    context = `Domain: ${domainName}
+Assigned topic: "${topic}"
+Topic direction: "${topicDirection || 'none'}"`;
   }
 
-  const wordCount = userText.trim().split(/\s+/).filter(Boolean).length;
+  return `You are the sharpest writing analyst in the room — part developmental editor, part cognitive scientist, part sparring partner. The writer you're analyzing chose to use a timed writing app. They're not here for compliments. They want to understand exactly why their writing is at the level it's at and what to do next.
 
-  return `You are a world-class cognitive writing analyst - part psychologist, part editor, part writing coach. Your job is to give a writer the most precise, actionable, text-grounded analysis they've ever received. Every claim you make MUST reference specific words, phrases, or passages from their text.
+Your job: make every sentence of your analysis feel like it could only have been written about *this* piece.
 
 ${context}
 Word count: ${wordCount}
 
-THE WRITER'S TEXT (analyze this carefully - quote from it directly):
----
+━━━ THE WRITER'S TEXT ━━━
 ${userText}
----
+━━━ END OF TEXT ━━━
 
-You will score 5 psychology-backed dimensions. For EACH dimension, provide:
-1. A score out of 100
-2. A "what this score means" explanation (2 sentences, concrete)
-3. A "quote_example" - pull an actual phrase/sentence from their text that illustrates this dimension (good OR bad)
-4. A "precise_fix" - one SPECIFIC, actionable rewrite or technique they could have applied to that exact passage
+${quoteLengthGuidance}
 
-THE 5 DIMENSIONS (psychology-rooted, not vague):
+══════════════════════════════════════
+SCORING — 5 DIMENSIONS
+══════════════════════════════════════
+Score each dimension 0–100. Use the anchors below. Default to LOWER scores — most timed writing lands in the 40–65 range. 80+ is rare and should feel earned, not given.
 
-1. STRUCTURAL CLARITY (based on Schema Theory - how well your thinking is organized into recognizable patterns)
-   Score reflects: paragraph flow, logical transitions, argument scaffolding, reader orientation
-   
-2. COGNITIVE DEPTH (based on Bloom's Taxonomy - are you describing, analyzing, evaluating, or creating?)
-   Score reflects: use of evidence, nuance, multi-perspective thinking, conceptual layering
-   
-3. ORIGINAL SYNTHESIS (based on Divergent Thinking research - are you connecting ideas in novel ways?)
-   Score reflects: unexpected angles, personal voice, creative metaphors, non-obvious connections
-   
-4. RHETORICAL POWER (based on Aristotle's Ethos/Pathos/Logos - how persuasive and compelling is this?)
-   Score reflects: emotional resonance, credibility signals, logical force, engagement hooks
-   
-5. METACOGNITIVE AWARENESS (based on Flavell's metacognition model - do you know what you think AND why?)
-   Score reflects: self-awareness in writing, nuance about own claims, intellectual honesty, epistemic confidence
+1. STRUCTURAL CLARITY (Schema Theory — how ideas are organized into navigable patterns)
+   Evaluates: paragraph architecture, logical flow, transitions, reader orientation${DIMENSION_ANCHORS.structural_clarity}
 
-THINKER ARCHETYPES (assign ONE based on the dimension scores. These must feel accurate, not generic):
+2. COGNITIVE DEPTH (Bloom's Taxonomy — what level of thinking is happening?)
+   Evaluates: analysis vs. description, evidence use, multi-perspective thinking, conceptual development${DIMENSION_ANCHORS.cognitive_depth}
 
-- "The Systems Thinker" (🔗) - High Structural Clarity + Cognitive Depth. You see the skeleton of ideas. You naturally structure complex info but may over-engineer simple points.
-- "The Intuitive Rebel" (⚡) - High Original Synthesis + Rhetorical Power. You lead with gut and flair. Your ideas feel fresh but sometimes lack grounding.
-- "The Deep Diver" (🌊) - High Cognitive Depth + Metacognitive Awareness. You interrogate ideas from the inside. You're nuanced but can lose the reader in abstraction.
-- "The Connector" (🕸️) - High Original Synthesis + Metacognitive Awareness. You link domains others miss. Risk: connections can feel forced without Structural Clarity.
-- "The Amplifier" (📢) - High Rhetorical Power + Structural Clarity. You know how to land a point. Risk: persuasion without depth can feel hollow.
-- "The Excavator" (⛏️) - High Cognitive Depth only, other scores lower. You think deeply but haven't found your communication voice yet. High ceiling.
+3. ORIGINAL SYNTHESIS (Divergent Thinking — are connections novel or predictable?)
+   Evaluates: unexpected angles, personal voice distinctiveness, non-obvious examples, creative reframing${DIMENSION_ANCHORS.original_synthesis}
 
-SCORING GUIDE - be calibrated, not generous:
-- 80-100: Genuinely exceptional. Most timed writing never reaches here.
-- 60-79: Strong with clear intent. Above average.
-- 40-59: Developing. Ideas present but craft is inconsistent.
-- 20-39: Early stage. Potential visible but execution fragmented.
-- 0-19: Minimal - very short text, stream-of-consciousness, or disconnected thoughts.
+4. RHETORICAL POWER (Aristotle's Ethos/Pathos/Logos — how compelling and persuasive is this?)
+   Evaluates: emotional stakes, logical force, position clarity, whether the reader is moved${DIMENSION_ANCHORS.rhetorical_power}
+
+5. METACOGNITIVE AWARENESS (Flavell — does the writer know what they're claiming and why?)
+   Evaluates: intellectual honesty, productive uncertainty, confidence calibration, epistemic signal${DIMENSION_ANCHORS.metacognitive_awareness}
 
 OVERALL SCORE = weighted average: Clarity 20% + Depth 25% + Synthesis 20% + Rhetoric 20% + Metacog 15%
+Round to nearest integer.
 
-SPELLING/GRAMMAR: Identify up to 5 real errors with exact text. Format: "'misspeled' → 'misspelled'"
+══════════════════════════════════════
+THINKER ARCHETYPE — assign exactly ONE
+══════════════════════════════════════
+Assignment is determined by the TOP TWO dimension scores. Do not assign based on "general vibe."
 
-Return ONLY a valid JSON object. No markdown fences. No extra text. Exact shape:
+- "The Systems Thinker" (🔗) → Structural Clarity + Cognitive Depth are the two highest. Sees the skeleton of ideas. Makes complex things navigable. Risk: can over-engineer simple points into unnecessary scaffolding.
+- "The Intuitive Rebel" (⚡) → Original Synthesis + Rhetorical Power are the two highest. Leads with gut and conviction. Ideas arrive with flair. Risk: persuasion without enough grounding.
+- "The Deep Diver" (🌊) → Cognitive Depth + Metacognitive Awareness are the two highest. Interrogates ideas from the inside. Earns conclusions slowly. Risk: can lose the reader in the process of thinking.
+- "The Connector" (🕸️) → Original Synthesis + Metacognitive Awareness are the two highest. Links domains others miss. Knows the edges of what they know. Risk: connections can feel forced if Structural Clarity is low.
+- "The Amplifier" (📢) → Rhetorical Power + Structural Clarity are the two highest. Knows how to land a point. High execution instinct. Risk: persuasion without depth reads as confident emptiness.
+- "The Excavator" (⛏️) → Cognitive Depth is clearly highest, but other scores are significantly lower. Deep thinker still finding a communication voice. Highest potential ceiling of any archetype.
+
+The archetype_full_description must reference specific phrases or patterns from this particular text. Generic archetype descriptions are failure mode.
+
+══════════════════════════════════════
+PER-DIMENSION OUTPUT — for each of the 5:
+══════════════════════════════════════
+For each dimension, produce:
+- Score (0–100)
+- _meaning: 2 sentences. What does THIS score mean for THIS writer? Not what the dimension means in general.
+- _quote: A phrase or sentence directly from their text that best illustrates the dimension (for good or for ill). No paraphrasing.
+- _fix: One specific, usable rewrite or technique applied to that exact quote/passage. Don't say "try to be more analytical" — show the rewrite or name the exact move.
+
+══════════════════════════════════════
+SPELLING/GRAMMAR
+══════════════════════════════════════
+Find up to 5 real errors. Format exactly: "'error' → 'correction'" (e.g. "'recieve' → 'receive'"). Only include actual errors. Empty array if none.
+
+══════════════════════════════════════
+SUMMARY FIELDS
+══════════════════════════════════════
+top_strength: The single most specific impressive thing about this piece — name the exact passage or move that works.
+critical_gap: The single highest-leverage thing to fix — be specific about where in the text it shows up.
+next_step: One concrete practice or rewrite exercise they can do today that directly addresses the critical gap. Not advice — an action.
+
+══════════════════════════════════════
+OUTPUT — valid JSON only, no markdown
+══════════════════════════════════════
 {
   "structural_clarity": 0,
-  "structural_clarity_meaning": "What this score means for this writer.",
-  "structural_clarity_quote": "exact phrase or sentence from their text",
-  "structural_clarity_fix": "Specific rewrite or technique for that exact passage",
+  "structural_clarity_meaning": "...",
+  "structural_clarity_quote": "...",
+  "structural_clarity_fix": "...",
 
   "cognitive_depth": 0,
-  "cognitive_depth_meaning": "What this score means for this writer.",
-  "cognitive_depth_quote": "exact phrase or sentence from their text",
-  "cognitive_depth_fix": "Specific rewrite or technique for that exact passage",
+  "cognitive_depth_meaning": "...",
+  "cognitive_depth_quote": "...",
+  "cognitive_depth_fix": "...",
 
   "original_synthesis": 0,
-  "original_synthesis_meaning": "What this score means for this writer.",
-  "original_synthesis_quote": "exact phrase or sentence from their text",
-  "original_synthesis_fix": "Specific rewrite or technique for that exact passage",
+  "original_synthesis_meaning": "...",
+  "original_synthesis_quote": "...",
+  "original_synthesis_fix": "...",
 
   "rhetorical_power": 0,
-  "rhetorical_power_meaning": "What this score means for this writer.",
-  "rhetorical_power_quote": "exact phrase or sentence from their text",
-  "rhetorical_power_fix": "Specific rewrite or technique for that exact passage",
+  "rhetorical_power_meaning": "...",
+  "rhetorical_power_quote": "...",
+  "rhetorical_power_fix": "...",
 
   "metacognitive_awareness": 0,
-  "metacognitive_awareness_meaning": "What this score means for this writer.",
-  "metacognitive_awareness_quote": "exact phrase or sentence from their text",
-  "metacognitive_awareness_fix": "Specific rewrite or technique for that exact passage",
+  "metacognitive_awareness_meaning": "...",
+  "metacognitive_awareness_quote": "...",
+  "metacognitive_awareness_fix": "...",
 
   "overall_score": 0,
 
   "archetype_name": "",
   "archetype_icon": "",
-  "archetype_full_description": "3-4 sentences that feel personal and accurate - reference what they actually wrote. Why THIS archetype for THIS writer.",
-  "archetype_thinking_style": "One precise sentence about how they process and communicate ideas, based on patterns in their text.",
-  "archetype_ceiling": "One sentence on what they could become if they developed their gaps.",
+  "archetype_full_description": "3-4 sentences referencing this writer's actual text and patterns — not the archetype description copy-pasted.",
+  "archetype_thinking_style": "One sentence about how this writer specifically processes and communicates ideas, inferred from patterns in this text.",
+  "archetype_ceiling": "One sentence on the specific thing that, if developed, would elevate this writer to the next level.",
 
-  "top_strength": "The single most impressive thing about this writing - be specific and reference their text.",
-  "critical_gap": "The single most impactful thing they can work on - be specific and reference their text.",
-  "next_step": "One concrete writing exercise or technique they can practice TODAY to address the critical gap.",
+  "top_strength": "...",
+  "critical_gap": "...",
+  "next_step": "...",
 
   "spelling_errors": []
 }`;
