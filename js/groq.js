@@ -78,35 +78,44 @@ async function callGroq(prompt, { model = GROQ_MODEL_ANALYSIS, temperature = 0.3
 // Per-dimension scoring anchors — these live in the prompt to prevent score inflation
 const DIMENSION_ANCHORS = {
   structural_clarity: `
-    - 85–100: Reader can navigate the piece without rereading. Transitions earn their place. The structure itself is an argument.
-    - 65–84: Clear intent, some organizational payoff, but one section probably loses the thread.
-    - 45–64: Ideas present but order feels accidental. Paragraphs don't build on each other.
-    - 25–44: Starts somewhere, ends somewhere else, no intentional path between.
-    - 0–24: Stream-of-consciousness or abandoned mid-thought.`,
+    SCORING GUIDE (timed writing context — not a polished draft):
+    - 75–100: The reader can follow the argument without getting lost. Paragraphs connect. There's a beginning, middle, and end that feel intentional. Transitions exist.
+    - 55–74: A clear main idea runs through it, even if one section wobbles or the ending is abrupt. The reader knows what the writer was trying to do.
+    - 35–54: Ideas are present but the order feels accidental. Paragraphs could be rearranged without changing much. The reader has to do work to follow.
+    - 15–34: Jumps between unconnected points. Starts somewhere, ends somewhere else, no visible thread.
+    - 0–14: Stream-of-consciousness with no navigable structure, or abandoned mid-thought.`,
+
   cognitive_depth: `
-    - 85–100: Writer moves between description, analysis, and evaluation. Claims are earned, not assumed. Reader learns something.
-    - 65–84: Real thinking visible — at least one moment where the writer surprised themselves.
-    - 45–64: Mostly observation. Ideas are present but not developed. "X is bad because X is bad."
-    - 25–44: Surface-level throughout. Could have been written without thinking about the topic first.
-    - 0–24: Filler, restatements, or purely reactive writing.`,
+    SCORING GUIDE (timed writing context — not a polished draft):
+    - 75–100: Goes beyond stating the obvious. At least one moment where the writer analyzes, compares, challenges an assumption, or draws a non-surface conclusion. Reader learns something or sees something differently.
+    - 55–74: More than pure description — there's a "so what" somewhere in the piece, even if it's underdeveloped.
+    - 35–54: Mostly describes what already exists. Ideas are named but not developed. "X is a problem" with no explanation of why or what that reveals.
+    - 15–34: Restates the topic back as the argument. Could have been written without thinking about it first.
+    - 0–14: Filler, copied framing, or zero engagement with the actual topic.`,
+
   original_synthesis: `
-    - 85–100: At least one connection or angle the reader genuinely wouldn't have predicted. Personal voice is unmistakable.
-    - 65–84: A non-default take somewhere in the piece. More than one way to write it.
-    - 45–64: Competent but predictable. The "obvious" take, executed adequately.
-    - 25–44: Generic framing, familiar examples, no distinguishing moves.
-    - 0–24: Could have been written by anyone about anything.`,
+    SCORING GUIDE (timed writing context — not a polished draft):
+    - 75–100: Something in here the reader wouldn't have predicted. A personal angle, an unexpected connection, a specific example that's not the first one anyone would reach for. Voice is present.
+    - 55–74: Not the completely default take. There's at least one moment where the writer made a choice instead of going on autopilot.
+    - 35–54: The obvious take, executed competently. Nothing wrong with it, nothing surprising about it.
+    - 15–34: Generic framing, the most predictable examples, no distinguishing moves anywhere in the piece.
+    - 0–14: Could be about any topic. No voice, no angle, no individual perspective.`,
+
   rhetorical_power: `
-    - 85–100: Persuasive. Creates stakes. The reader cares about the outcome before they reach the end.
-    - 65–84: Committed to a position, some emotional or logical force. Mostly convincing.
-    - 45–64: Has a position but doesn't really fight for it. Informative rather than persuasive.
-    - 25–44: Position unclear or abandoned. Hedged into incoherence.
-    - 0–24: No discernible argument. Reader doesn't know what to think when done.`,
+    SCORING GUIDE (timed writing context — not a polished draft):
+    - 75–100: Has a position and fights for it. The reader feels some pull — emotional, logical, or both. Stakes are clear. Not just informative.
+    - 55–74: Takes a side and mostly holds it. Some persuasive force even if the argument isn't airtight.
+    - 35–54: Has an implied position but doesn't really argue for it. More "here are some thoughts" than "here's why I'm right."
+    - 15–34: Position unclear or abandoned halfway. Hedged to the point of incoherence.
+    - 0–14: No discernible argument. Reader doesn't know what to think when finished.`,
+
   metacognitive_awareness: `
-    - 85–100: Writer knows what they're claiming and why. Acknowledges limits. Earns confidence where they have it.
-    - 65–84: Self-awareness visible — at least one moment of productive uncertainty or honest qualification.
-    - 45–64: Overconfident or underconfident. Either "I'm right because" or "maybe, possibly, I don't know."
-    - 25–44: No indication writer has thought about *how* they're thinking, just *what* they're thinking.
-    - 0–24: Disconnected from own claims.`
+    SCORING GUIDE (timed writing context — not a polished draft):
+    - 75–100: The writer knows what they're claiming and shows it. Confidence where earned, qualification where honest. Not overconfident, not drowning in hedges.
+    - 55–74: At least one moment of real self-awareness — an honest qualification, an acknowledged limit, or a claim the writer clearly thought about before making.
+    - 35–54: Either overconfident (states everything as fact with no grounding) or underconfident (so many "maybe"s that no claim lands). Doesn't seem aware of which one.
+    - 15–34: No signal that the writer has thought about the reliability of their own claims.
+    - 0–14: Completely disconnected from what they're actually asserting.`
 };
 
 function buildAnalysisPrompt(userText, domainName, topic, topicDirection, isFreeWrite) {
@@ -143,7 +152,16 @@ ${quoteLengthGuidance}
 ══════════════════════════════════════
 SCORING — 5 DIMENSIONS
 ══════════════════════════════════════
-Score each dimension 0–100. Use the anchors below. Default to LOWER scores — most timed writing lands in the 40–65 range. 80+ is rare and should feel earned, not given.
+Score each dimension 0–100 based purely on what you read. Do not default to any range. Score what you see.
+
+CALIBRATION PRINCIPLE — think like a human editor who has read 500 timed writing pieces:
+- Someone who writes coherently, takes a clear position, and has at least one non-obvious idea should score 60–72 overall. This is the honest middle — not a gift, not a punishment.
+- Someone who does all of the above AND has a surprising move, a strong voice, or a genuinely well-argued case should score 72–82.
+- Someone writing filler, restating the topic, or producing incoherent text should score below 40.
+- 85+ requires something genuinely impressive across multiple dimensions simultaneously — rare but real.
+- A score of 50 is not "bad." It means the writing is developing. A score of 65 is solid. Treat them accordingly.
+
+The goal is accuracy, not encouragement and not punishment. A writer who produced good timed writing should feel correctly seen. A writer who produced weak writing should understand exactly why — not feel randomly penalized.
 
 1. STRUCTURAL CLARITY (Schema Theory — how ideas are organized into navigable patterns)
    Evaluates: paragraph architecture, logical flow, transitions, reader orientation${DIMENSION_ANCHORS.structural_clarity}
